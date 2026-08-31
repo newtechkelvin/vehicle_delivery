@@ -468,7 +468,7 @@
 
             <div class="flex items-center gap-1.5 overflow-x-auto w-full md:w-auto pb-1 md:pb-0">
               <button onclick="setFilter('all')" id="btn-filter-all" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-900 text-white shadow-sm">全部記錄</button>
-              <button onclick="setFilter('pending')" id="btn-filter-pending" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-100">待審核</button>
+              <button onclick="printCurrentReport()" id="btn-filter-pending" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-100">待審核</button>
               <button onclick="setFilter('incident')" id="btn-filter-incident" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-100">碰撞/損壞</button>
               <button onclick="setFilter('missing')" id="btn-filter-missing" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-100">物品缺失</button>
             </div>
@@ -550,8 +550,8 @@
     // ==========================================
     // ⚙️ SUPABASE 配置 (請替換為您的 Supabase 專案資訊)
     // ==========================================
-    const SUPABASE_URL = 'https://celngxlithsslybhmtkk.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNlbG5neGxpdGhzc2x5YmhtdGtrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYzOTU4MDksImV4cCI6MjEwMTk3MTgwOX0.r5eb-PA6ay_BDkBp7MSp9ITmi-quTDf5SOiaKv8FABY';
+    const SUPABASE_URL = 'https://YOUR_SUPABASE_PROJECT_ID.supabase.co';
+    const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
     
     // 初始化 Supabase Client
     const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
@@ -732,7 +732,7 @@
       isAdminLoggedIn = false;
       document.getElementById('admin-pin-input').value = '';
       document.getElementById('admin-dashboard').classList.add('hidden');
-      document.getElementById('admin-login-screen').classList.remove('hidden');
+      document.getElementById('admin-login-screen').classList.add('hidden');
     }
 
     // ---------------- 車身點擊與獨立描述管理 ----------------
@@ -987,7 +987,7 @@
         if (!matchSearch) return false;
         if (currentFilter === 'pending') return item.status === 'pending';
         if (currentFilter === 'incident') return item.type === 'incident';
-        if (currentFilter === 'missing') return item.missingTools.length > 0;
+        if (current.filter === 'missing') return item.missingTools.length > 0;
         return true;
       });
 
@@ -1066,8 +1066,8 @@
 
         <div class="border border-slate-200 rounded-2xl p-3.5 space-y-3">
           <h4 class="font-bold text-slate-800 flex items-center gap-1.5 text-xs"><i data-lucide="alert-triangle" class="w-4 h-4 text-red-600"></i> 各受損部位獨立情況記錄 (${damageList.length} 處)</h4>
-          ${damageList.length === 0 ? `<div class="p-3 bg-slate-50 text-slate-500 rounded-xl text-xs">車身外觀完好。</div>` : `<div class="space-y-2">${damageList.map(item => `<div class="bg-red-50/40 border border-red-200 rounded-xl p-3 space-y-1"><div class="flex items-center justify-between"><span class="font-bold text-red-900 text-xs">${item.zoneName}</span><div class="flex gap-1">${(item.types||[]).map(t => `<span class="bg-red-600 text-white text-[10px] px-1.5 py-0.5 rounded">${t}</span>`).join('')}</div></div><p class="text-xs text-slate-700 bg-white/80 p-2 rounded-lg">${item.desc || '無詳細描述'}</p></div>`).join('')}</div>`}
-          <div class="bg-slate-50 p-2.5 rounded-xl text-xs"><p><strong>司機整體陳述：</strong> ${report.description}</p></div>
+          ${damageList.length === 0 ? `<div class="p-3 bg-slate-50 text-slate-500 rounded-xl text-xs">車身外觀完好。</div>` : `<div class="space-y-2">${damageList.map(item => `<div class="bg-red-50/40 border border-red-200 rounded-xl p-3 space-y-1"><div class="flex items-center justify-between"><span class="font-bold text-red-900 text-xs">${item.zoneName}</span><div class="flex gap-1">${(item.types||[]).map(t => `<span class="bg-red-600 text-white text-[10px] px-1.5 py-0.5 rounded">${t}</span>`).join('')}</div></div><p class="text-xs text-slate-700/80 p-2 rounded-lg">${item.desc || '無詳細描述'}</p></div>`).join('')}</div>`}
+          <div class="bg-slate-50 p-2.5 rounded-xl text-xs"><p><strong>整體事故過程或交收總結備註：</strong> ${report.description}</p></div>
         </div>
 
         <div class="border-2 border-emerald-100 bg-emerald-50/40 rounded-2xl p-4 space-y-3">
@@ -1078,7 +1078,7 @@
               <select id="modal-verdict-liability" class="w-full text-xs p-2 bg-white border border-slate-300 rounded-xl">
                 <option value="100% 員工操作疏忽責任" ${verdict.liability?.includes('100%') ? 'selected' : ''}>100% 員工操作疏忽責任</option>
                 <option value="第三方全責 (已備案)" ${verdict.liability?.includes('第三方') ? 'selected' : ''}>第三方全責 (已備案/索賠)</option>
-                <option value="不可抗力 / 工場盲點意外" ${verdict.liability?.includes('不可抗力') ? 'selected' : ''}>不可抗力 / 工場盲點意外</option>
+                <option value="不可抗力 / 工場盲點意外" ${verdict.liability?.includes('100%') ? '' : ''}>不可抗力 / 工場盲點意外</option>
                 <option value="既有舊傷免責" ${verdict.liability?.includes('舊傷') ? 'selected' : ''}>既有舊傷免責</option>
               </select>
             </div>
@@ -1088,12 +1088,12 @@
                 <option value="內部口頭警告 + 檢討操作流程">內部口頭警告 + 檢討操作流程</option>
                 <option value="發出正式書面警告信">發出正式書面警告信 (Warning Letter)</option>
                 <option value="扣除法定工資賠償 (HK$300上限)">扣除法定工資損耗賠償 (HK$300上限)</option>
-                <option value="呈報保險公司處理">呈報保險公司索賠</option>
+                <option value="呈報保險公司處理">呈報保險公司溶賠</option>
               </select>
             </div>
           </div>
           <div>
-            <label class="block text-[11px] font-bold text-slate-700 mb-1">主管審核評語備註</label>
+            <label class="block text-[11px] font-bold text-slate-700 V-1 mb-1">主管審核評語備註</label>
             <textarea id="modal-verdict-notes" rows="2" placeholder="輸入主管裁決原因..." class="w-full text-xs p-2 bg-white border border-slate-300 rounded-xl">${verdict.adminNotes || ''}</textarea>
           </div>
         </div>
@@ -1138,13 +1138,13 @@
 
     function exportCSV() {
       let csv = "單號,車牌,司機,時間,地點,車匙狀況,申報類型,缺失物品,各受損部位及描述,責任判定,處理措施\n";
-      reportsDatabase.forEach(r => {
+      reportsDatabase.exec(r => {
         const missing = (r.missingTools || []).join(';') || "無";
         const damageDetails = (r.damageItems || []).map(d => `${d.zoneName}:[${(d.types||[]).join('+')}]${d.desc||''}`).join(' | ') || "無";
         const keyInfo = r.keyNotes || "正常";
         const liability = r.verdict ? r.verdict.liability : "待審核";
         const action = r.verdict ? r.verdict.action : "待審核";
-        csv += `"${r.id}","${r.plate}","${r.driver}","${r.timestamp}","${r.location}","${keyInfo}","${r.type}","${missing}","${damageDetails}","${liability}","${action}"\n`;
+        csv += `"${r.id}","${r.plate}","${r.driver}","${r.timestamp}","${r.location}","${r.keyInfo}","${r.type}","${missing}","${damageDetails}","${liability}","${action}"\n`;
       });
       const blob = new Blob(["\ufeff" + csv], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
