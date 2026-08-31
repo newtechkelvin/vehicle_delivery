@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>車隊營運管理系統 - Supabase 雲端版</title>
+  <title>New Tech Motor 車隊營運管理系統</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide Icons -->
@@ -59,10 +59,10 @@
         </div>
         <div>
           <div class="flex items-center gap-2">
-            <h1 class="text-sm md:text-base font-bold tracking-tight">車隊交收與事故管理系統</h1>
-            <span class="text-[10px] bg-emerald-900/80 text-emerald-300 px-2 py-0.5 rounded border border-emerald-700">Supabase 雲端版</span>
+            <h1 class="text-sm md:text-base font-bold tracking-tight">車隊管理系統</h1>
+            <span class="text-[10px] bg-emerald-900/80 text-emerald-300 px-2 py-0.5 rounded border border-emerald-700">雲端版</span>
           </div>
-          <p class="text-[11px] text-slate-400">即時雲端同步 · 獨立位置描述 · Vercel 部署就緒</p>
+          <p class="text-[11px] text-slate-400">即時上傅交收記錄與事故報告</p>
         </div>
       </div>
 
@@ -548,8 +548,8 @@
     // ==========================================
     // ⚙️ SUPABASE 配置 (請替換為您的 Supabase 專案資訊)
     // ==========================================
-    const SUPABASE_URL = 'https://YOUR_SUPABASE_PROJECT_ID.supabase.co';
-    const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+    const SUPABASE_URL = 'https://celngxlithsslybhmtkk.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNlbG5neGxpdGhzc2x5YmhtdGtrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYzOTU4MDksImV4cCI6MjEwMTk3MTgwOX0.r5eb-PA6ay_BDkBp7MSp9ITmi-quTDf5SOiaKv8FABY';
     
     // 初始化 Supabase Client
     const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
