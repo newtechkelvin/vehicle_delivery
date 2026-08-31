@@ -1,0 +1,1160 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>車隊營運管理系統 - Supabase 雲端版</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Supabase JS Client SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    /* 車身俯視圖熱點互動 */
+    .car-zone {
+      transition: all 0.18s ease;
+      cursor: pointer;
+    }
+    .car-zone:hover {
+      fill: rgba(59, 130, 246, 0.3);
+    }
+    .car-zone.active-damage {
+      fill: rgba(239, 68, 68, 0.65);
+      stroke: #b91c1c;
+      stroke-width: 2.5px;
+    }
+    /* 簽名畫板 */
+    #signature-pad {
+      touch-action: none;
+    }
+    /* 列印樣式 */
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+      #admin-detail-modal, #admin-detail-modal * {
+        visibility: visible;
+      }
+      #admin-detail-modal {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+      }
+      .no-print {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans min-h-screen flex flex-col antialiased">
+
+  <!-- ================= 頂部全域導航 ================= -->
+  <header class="bg-slate-900 text-white sticky top-0 z-40 shadow-lg border-b border-slate-800 no-print">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center space-x-2.5">
+        <div class="w-9 h-9 bg-emerald-600 rounded-xl flex items-center justify-center shadow-md shadow-emerald-500/30">
+          <i data-lucide="cloud" class="w-5 h-5 text-white"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-sm md:text-base font-bold tracking-tight">車隊交收與事故管理系統</h1>
+            <span class="text-[10px] bg-emerald-900/80 text-emerald-300 px-2 py-0.5 rounded border border-emerald-700">Supabase 雲端版</span>
+          </div>
+          <p class="text-[11px] text-slate-400">即時雲端同步 · 獨立位置描述 · Vercel 部署就緒</p>
+        </div>
+      </div>
+
+      <!-- 頁面切換控制 -->
+      <div class="flex items-center gap-2">
+        <button id="nav-driver-btn" onclick="navigateTo('driver')" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-600 text-white shadow-sm transition">
+          <i data-lucide="smartphone" class="w-3.5 h-3.5"></i>
+          <span>司機填報端</span>
+        </button>
+        <button id="nav-admin-btn" onclick="navigateTo('admin')" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 transition">
+          <i data-lucide="shield-check" class="w-3.5 h-3.5 text-amber-400"></i>
+          <span>主管管理後台</span>
+          <span id="badge-pending" class="ml-1 bg-amber-500 text-slate-950 font-bold text-[10px] px-1.5 py-0.2 rounded-full">0</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ================= 主要內容區 ================= -->
+  <main class="flex-1 w-full">
+
+    <!-- ------------------------------------------------------------- -->
+    <!-- 【頁面 A】司機專用填報端 (Driver Mobile Portal)               -->
+    <!-- ------------------------------------------------------------- -->
+    <section id="page-driver" class="max-w-xl mx-auto p-4 space-y-4">
+      
+      <!-- 頂部指引橫幅 -->
+      <div class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white p-4 rounded-2xl shadow-md">
+        <div class="flex items-center justify-between">
+          <div class="space-y-1">
+            <span class="text-[10px] font-semibold tracking-wider uppercase bg-white/20 px-2 py-0.5 rounded">司機 / 工場同事專用</span>
+            <h2 class="text-lg font-bold">車輛交接與事故即時申報</h2>
+            <p class="text-xs text-blue-100">提交後將直接寫入雲端資料庫，主管後台可即時查閱。</p>
+          </div>
+          <div class="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-sm border border-white/20 flex-shrink-0">
+            <i data-lucide="clipboard-pen" class="w-6 h-6 text-white"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- 申報表單 -->
+      <form id="driver-form" onsubmit="handleDriverSubmit(event)" class="space-y-4">
+        
+        <!-- 卡片 1: 基本資料 -->
+        <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200/80 space-y-3">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+            <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+              <i data-lucide="file-text" class="w-4 h-4 text-blue-600"></i> 第一步：填寫車輛與操作資訊
+            </h3>
+            <span class="text-[10px] text-red-500 font-medium">* 為必填項</span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">車牌號碼 *</label>
+              <input type="text" id="form-plate" required placeholder="例: TV 9928" class="w-full text-sm font-mono font-bold uppercase px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">司機/同事姓名 *</label>
+              <input type="text" id="form-driver" required placeholder="姓名" class="w-full text-sm px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">交接/事故地點 *</label>
+              <select id="form-location" class="w-full text-xs px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
+                <option value="工場內部 - 停車/移車區">工場內部 - 停車/移車區</option>
+                <option value="客人地址現場交收">客人地址現場交收</option>
+                <option value="前往目的地途中 (路上)">前往目的地途中 (路上)</option>
+                <option value="外判車行/驗車中心">外判車行/驗車中心</option>
+                <option value="其他地點">其他地點</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">申報性質 *</label>
+              <select id="form-type" onchange="toggleDamageForm(this.value)" class="w-full text-xs font-bold px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
+                <option value="routine">日常交收點收 (正常)</option>
+                <option value="incident" class="text-red-600">發生碰撞 / 損壞 / 物品缺失</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- 卡片 2: 隨車物品點收 Checkbox + 車匙 + 自訂物品新增 -->
+        <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200/80 space-y-3">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+            <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+              <i data-lucide="package-check" class="w-4 h-4 text-emerald-600"></i> 第二步：隨車車匙與跟車物品點收
+            </h3>
+            <span class="text-[10px] text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">若有缺失請取消勾選</span>
+          </div>
+
+          <!-- 固定基礎跟車物品（含車匙） -->
+          <div class="space-y-2" id="driver-tools-group">
+            
+            <!-- 必備項：跟車車匙 -->
+            <div class="p-2.5 bg-blue-50/70 rounded-xl border border-blue-200 flex flex-col gap-2">
+              <label class="flex items-center justify-between cursor-pointer">
+                <span class="text-xs font-bold text-blue-900 flex items-center gap-2">
+                  <i data-lucide="key-round" class="w-4 h-4 text-blue-600"></i> 跟車車匙 (原廠正匙 / 遙控器)
+                </span>
+                <input type="checkbox" name="driver-tools" value="跟車車匙" checked class="w-4 h-4 text-blue-600 rounded focus:ring-0">
+              </label>
+              <div class="flex items-center gap-2 text-[11px] text-slate-500 bg-white/80 px-2.5 py-1.5 rounded-lg border border-blue-100">
+                <span class="font-medium text-slate-600 flex-shrink-0">車匙狀況/數量：</span>
+                <input type="text" id="tool-key-notes" placeholder="例: 正匙1條 + 遙控1個 (如有副匙請註明)" class="w-full bg-transparent text-xs outline-none text-slate-700 placeholder-slate-400">
+              </div>
+            </div>
+
+            <!-- 固定項 1: 隨車工具包 -->
+            <label class="flex items-center justify-between p-2.5 bg-slate-50 hover:bg-slate-100 rounded-xl border border-slate-200 cursor-pointer transition">
+              <span class="text-xs font-medium text-slate-700 flex items-center gap-2">
+                <i data-lucide="wrench" class="w-4 h-4 text-slate-400"></i> 原廠隨車工具包 (含套筒/螺絲批)
+              </span>
+              <input type="checkbox" name="driver-tools" value="隨車工具包" checked class="w-4 h-4 text-emerald-600 rounded focus:ring-0">
+            </label>
+
+            <!-- 固定項 2: 油壓千斤頂 -->
+            <label class="flex items-center justify-between p-2.5 bg-slate-50 hover:bg-slate-100 rounded-xl border border-slate-200 cursor-pointer transition">
+              <span class="text-xs font-medium text-slate-700 flex items-center gap-2">
+                <i data-lucide="hammer" class="w-4 h-4 text-slate-400"></i> 油壓千斤頂 (Jack)
+              </span>
+              <input type="checkbox" name="driver-tools" value="油壓千斤頂" checked class="w-4 h-4 text-emerald-600 rounded focus:ring-0">
+            </label>
+
+            <!-- 固定項 3: 後備輪胎 -->
+            <label class="flex items-center justify-between p-2.5 bg-slate-50 hover:bg-slate-100 rounded-xl border border-slate-200 cursor-pointer transition">
+              <span class="text-xs font-medium text-slate-700 flex items-center gap-2">
+                <i data-lucide="disc" class="w-4 h-4 text-slate-400"></i> 後備輪胎 / 原廠補胎膠套裝
+              </span>
+              <input type="checkbox" name="driver-tools" value="後備輪胎" checked class="w-4 h-4 text-emerald-600 rounded focus:ring-0">
+            </label>
+
+            <!-- 固定項 4: 行車記錄器記憶卡 -->
+            <label class="flex items-center justify-between p-2.5 bg-slate-50 hover:bg-slate-100 rounded-xl border border-slate-200 cursor-pointer transition">
+              <span class="text-xs font-medium text-slate-700 flex items-center gap-2">
+                <i data-lucide="video" class="w-4 h-4 text-slate-400"></i> 行車記錄器 SD 記憶卡 (在位正常運作)
+              </span>
+              <input type="checkbox" name="driver-tools" value="行車記錄器記憶卡" checked class="w-4 h-4 text-emerald-600 rounded focus:ring-0">
+            </label>
+
+            <!-- 固定項 5: 隧道卡/油卡 -->
+            <label class="flex items-center justify-between p-2.5 bg-slate-50 hover:bg-slate-100 rounded-xl border border-slate-200 cursor-pointer transition">
+              <span class="text-xs font-medium text-slate-700 flex items-center gap-2">
+                <i data-lucide="credit-card" class="w-4 h-4 text-slate-400"></i> 隧道出入卡 / 工場油卡
+              </span>
+              <input type="checkbox" name="driver-tools" value="隧道卡/油卡" checked class="w-4 h-4 text-emerald-600 rounded focus:ring-0">
+            </label>
+
+          </div>
+
+          <!-- 動態自訂跟車物品區塊 -->
+          <div class="border-t border-slate-100 pt-3 space-y-2">
+            <div class="flex items-center justify-between">
+              <label class="text-xs font-bold text-slate-700 flex items-center gap-1">
+                <i data-lucide="plus-circle" class="w-3.5 h-3.5 text-blue-600"></i> 每車專屬 / 特殊跟車物品 (可自行新增)
+              </label>
+              <span class="text-[10px] text-slate-400">如客人行李、特殊工具等</span>
+            </div>
+
+            <!-- 輸入框 + 新增按鈕 -->
+            <div class="flex gap-2">
+              <input type="text" id="custom-tool-input" placeholder="輸入專屬物品名稱 (如: 尾板遙控器、充電線...)" class="flex-1 text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" onkeydown="if(event.key === 'Enter'){ event.preventDefault(); addCustomToolItem(); }">
+              <button type="button" onclick="addCustomToolItem()" class="px-3 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold rounded-xl flex items-center gap-1 transition">
+                <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                <span>新增</span>
+              </button>
+            </div>
+
+            <!-- 常用快捷標籤 -->
+            <div class="flex flex-wrap gap-1.5 pt-1 items-center text-[11px]">
+              <span class="text-[10px] text-slate-400">快捷加入：</span>
+              <button type="button" onclick="quickAddTool('尾板遙控器')" class="px-2 py-0.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-md border border-slate-200">+ 尾板遙控器</button>
+              <button type="button" onclick="quickAddTool('Type-C 車用充電線')" class="px-2 py-0.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-md border border-slate-200">+ 充電線</button>
+              <button type="button" onclick="quickAddTool('專用防盜螺絲套筒')" class="px-2 py-0.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-md border border-slate-200">+ 防盜螺絲筒</button>
+              <button type="button" onclick="quickAddTool('客人私人物品/行李 (已拍照)')" class="px-2 py-0.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-md border border-slate-200">+ 客人物品</button>
+            </div>
+
+            <!-- 動態新增項目的容器 -->
+            <div id="custom-tools-container" class="space-y-1.5 pt-1"></div>
+          </div>
+
+        </div>
+
+        <!-- 卡片 3: 車身受損標記與獨立位置描述 -->
+        <div id="driver-damage-panel" class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200/80 space-y-3">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+            <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+              <i data-lucide="alert-triangle" class="w-4 h-4 text-red-600"></i> 第三步：標記車身受損位置及輸入具體描述
+            </h3>
+            <button type="button" onclick="clearDriverZones()" class="text-[11px] text-slate-400 hover:text-red-500 underline">全部清除</button>
+          </div>
+
+          <p class="text-xs text-slate-500">👉 點擊下方車輛部位，即可在下方<strong>獨立輸入該位置的損壞情況</strong>：</p>
+
+          <!-- SVG 俯視互動車輛圖 -->
+          <div class="bg-slate-50 rounded-xl p-3 flex justify-center items-center border border-slate-200/70">
+            <svg viewBox="0 0 200 380" class="w-44 h-auto select-none">
+              <rect x="35" y="30" width="130" height="320" rx="38" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/>
+              
+              <!-- 車頭 Front -->
+              <path id="dzone-front" onclick="handleZoneClick('車頭 (Front)', 'dzone-front')" class="car-zone" d="M 45,65 C 45,35 155,35 155,65 L 155,80 L 45,80 Z" fill="#cbd5e1" stroke="#64748b"/>
+              <text x="100" y="60" text-anchor="middle" font-size="9.5" fill="#475569" font-weight="bold" pointer-events="none">車頭 Front</text>
+
+              <!-- 前擋風玻璃 -->
+              <polygon points="50,85 150,85 140,128 60,128" fill="#93c5fd" opacity="0.45"/>
+
+              <!-- 左前 / 右前 -->
+              <rect id="dzone-fl" onclick="handleZoneClick('左前葉子板', 'dzone-fl')" class="car-zone" x="35" y="85" width="20" height="60" rx="3" fill="#cbd5e1" stroke="#64748b"/>
+              <rect id="dzone-fr" onclick="handleZoneClick('右前葉子板', 'dzone-fr')" class="car-zone" x="145" y="85" width="20" height="60" rx="3" fill="#cbd5e1" stroke="#64748b"/>
+
+              <!-- 車頂 / 中段 -->
+              <rect id="dzone-mid" onclick="handleZoneClick('車頂/車頂架', 'dzone-mid')" class="car-zone" x="60" y="138" width="80" height="110" rx="6" fill="#cbd5e1" stroke="#64748b"/>
+              <text x="100" y="195" text-anchor="middle" font-size="9" fill="#475569" font-weight="bold" pointer-events="none">車頂 / 門框</text>
+
+              <!-- 左門 / 右門 -->
+              <rect id="dzone-ld" onclick="handleZoneClick('左側車門', 'dzone-ld')" class="car-zone" x="35" y="150" width="20" height="85" rx="3" fill="#cbd5e1" stroke="#64748b"/>
+              <rect id="dzone-rd" onclick="handleZoneClick('右側車門', 'dzone-rd')" class="car-zone" x="145" y="150" width="20" height="85" rx="3" fill="#cbd5e1" stroke="#64748b"/>
+
+              <!-- 後擋風玻璃 -->
+              <polygon points="60,253 140,253 148,283 52,283" fill="#93c5fd" opacity="0.45"/>
+
+              <!-- 左後 / 右後 -->
+              <rect id="dzone-rl" onclick="handleZoneClick('左後輪拱/車身', 'dzone-rl')" class="car-zone" x="35" y="240" width="20" height="65" rx="3" fill="#cbd5e1" stroke="#64748b"/>
+              <rect id="dzone-rr" onclick="handleZoneClick('右後輪拱/車身', 'dzone-rr')" class="car-zone" x="145" y="240" width="20" height="65" rx="3" fill="#cbd5e1" stroke="#64748b"/>
+
+              <!-- 車尾 Rear -->
+              <path id="dzone-rear" onclick="handleZoneClick('車尾保險槓 (Rear)', 'dzone-rear')" class="car-zone" d="M 45,310 L 155,310 C 155,340 45,340 45,310 Z" fill="#cbd5e1" stroke="#64748b"/>
+              <text x="100" y="328" text-anchor="middle" font-size="9.5" fill="#475569" font-weight="bold" pointer-events="none">車尾 Rear</text>
+            </svg>
+          </div>
+
+          <!-- 各位置獨立輸入卡片列表容器 -->
+          <div class="space-y-2.5 pt-1">
+            <div class="flex items-center justify-between text-xs">
+              <span class="font-bold text-slate-700 flex items-center gap-1.5">
+                <i data-lucide="layers" class="w-3.5 h-3.5 text-blue-600"></i> 已標記受損位置列表 (<span id="damage-count-badge">0</span> 處)
+              </span>
+              <span id="no-damage-tip" class="text-slate-400 text-[11px]">（目前車身完好無損）</span>
+            </div>
+
+            <!-- 動態生成各位置的獨立卡片 -->
+            <div id="damage-zones-cards-container" class="space-y-3"></div>
+          </div>
+
+          <!-- 整體事故過程或額外備註 -->
+          <div class="pt-2 border-t border-slate-100">
+            <label class="block text-xs font-semibold text-slate-600 mb-1">整體事故過程或交收總結備註</label>
+            <textarea id="form-desc" rows="2" placeholder="如發生事故，請簡述整體經過（例：於何時何地倒車時觸碰障礙物...）" class="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"></textarea>
+          </div>
+        </div>
+
+        <!-- 卡片 4: 現場拍照與電子簽署 -->
+        <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200/80 space-y-3">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+            <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+              <i data-lucide="camera" class="w-4 h-4 text-indigo-600"></i> 第四步：拍照存證與電子手寫簽名
+            </h3>
+          </div>
+
+          <!-- 模擬拍照上傳按鈕 -->
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">現場照片存證 (支援多張)</label>
+            <div onclick="addMockPhoto()" class="border-2 border-dashed border-slate-200 hover:border-blue-400 bg-slate-50 rounded-xl p-3 text-center cursor-pointer transition">
+              <i data-lucide="image-plus" class="w-6 h-6 mx-auto text-slate-400 mb-1"></i>
+              <p class="text-xs font-medium text-slate-600">點擊模擬拍攝/上傳現場照片</p>
+              <p class="text-[10px] text-slate-400">已啟用時間與 GPS 自動水印紀錄</p>
+            </div>
+            <!-- 照片縮圖容器 -->
+            <div id="driver-photos-preview" class="grid grid-cols-3 gap-2 mt-2"></div>
+          </div>
+
+          <!-- 手寫簽名板 -->
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <label class="text-xs font-semibold text-slate-600">當事司機/同事電子簽署 *</label>
+              <button type="button" onclick="clearSignatureCanvas()" class="text-[10px] text-blue-600 hover:underline">清除重新簽名</button>
+            </div>
+            <div class="border border-slate-300 rounded-xl bg-white overflow-hidden shadow-inner">
+              <canvas id="signature-pad" class="w-full h-24"></canvas>
+            </div>
+            <p class="text-[10px] text-slate-400 mt-1">請在方框內簽署，以確認上述點收及事故申報內容屬實。</p>
+          </div>
+        </div>
+
+        <!-- 提交按鈕 -->
+        <button type="submit" class="w-full py-3.5 bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white font-bold rounded-2xl shadow-lg shadow-blue-500/25 flex items-center justify-center gap-2 transition text-sm">
+          <i data-lucide="send" class="w-4 h-4"></i>
+          <span>即時提交至雲端資料庫</span>
+        </button>
+
+      </form>
+    </section>
+
+
+    <!-- ------------------------------------------------------------- -->
+    <!-- 【頁面 B】主管審核管理後台 (Admin Portal)                     -->
+    <!-- ------------------------------------------------------------- -->
+    <section id="page-admin" class="max-w-6xl mx-auto p-4 md:p-6 space-y-6 hidden">
+      
+      <!-- 1. 主管安全登入層 (PIN 驗證) -->
+      <div id="admin-login-screen" class="max-w-sm mx-auto my-12 bg-white p-6 rounded-3xl shadow-xl border border-slate-200 text-center space-y-4">
+        <div class="w-14 h-14 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center mx-auto shadow-inner">
+          <i data-lucide="lock" class="w-7 h-7"></i>
+        </div>
+        <div>
+          <h2 class="text-base font-bold text-slate-800">主管審核安全驗證</h2>
+          <p class="text-xs text-slate-500 mt-0.5">請輸入主管管理密碼以存取雲端後台</p>
+        </div>
+
+        <div class="space-y-3 text-left">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">管理員 PIN 碼</label>
+            <input type="password" id="admin-pin-input" maxlength="6" placeholder="請輸入 4 位密碼 (預設: 8888)" class="w-full text-center tracking-widest text-lg font-mono font-bold px-3 py-2 bg-slate-50 border rounded-xl focus:ring-2 focus:ring-amber-500 outline-none">
+          </div>
+          <p id="login-error-msg" class="text-xs text-red-500 text-center hidden">密碼錯誤，請重新輸入！</p>
+          <button onclick="handleAdminLogin()" class="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl shadow transition">
+            驗證並連接雲端後台
+          </button>
+          <div class="text-center">
+            <button onclick="quickFillPin()" class="text-[11px] text-blue-600 underline">一鍵填入預設密碼 (8888)</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. 主管後台正式介面 (登入後顯示) -->
+      <div id="admin-dashboard" class="space-y-6 hidden">
+        
+        <!-- 頂部資訊與登出 -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse"></span>
+              <h2 class="text-base font-bold text-slate-800">車隊營運與事故審核總覽 (Supabase 雲端實時)</h2>
+            </div>
+            <p class="text-xs text-slate-500 mt-0.5">自動同步全車隊交接狀態、位置獨立損壞描述及責任裁定歸檔</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="fetchReportsFromSupabase()" class="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-semibold rounded-lg flex items-center gap-1.5 border border-emerald-200 transition">
+              <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+              <span>重新整理雲端數據</span>
+            </button>
+            <button onclick="exportCSV()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg flex items-center gap-1.5 border border-slate-200 transition">
+              <i data-lucide="download" class="w-3.5 h-3.5"></i>
+              <span>匯出紀錄 (CSV)</span>
+            </button>
+            <button onclick="adminLogout()" class="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-semibold rounded-lg flex items-center gap-1.5 border border-red-200 transition">
+              <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
+              <span>登出</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 統計 KPI 卡片 -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-semibold text-slate-500">待主管審核</span>
+              <span class="p-1.5 bg-amber-100 text-amber-700 rounded-lg"><i data-lucide="clock" class="w-4 h-4"></i></span>
+            </div>
+            <p id="kpi-pending" class="text-2xl font-bold text-amber-600 mt-1">0</p>
+            <span class="text-[10px] text-slate-400">需盡速調取 Cam 片段</span>
+          </div>
+
+          <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-semibold text-slate-500">碰撞/損壞案件</span>
+              <span class="p-1.5 bg-red-100 text-red-700 rounded-lg"><i data-lucide="alert-circle" class="w-4 h-4"></i></span>
+            </div>
+            <p id="kpi-incidents" class="text-2xl font-bold text-red-600 mt-1">0</p>
+            <span class="text-[10px] text-slate-400">累計事故</span>
+          </div>
+
+          <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-semibold text-slate-500">隨車物品缺失</span>
+              <span class="p-1.5 bg-purple-100 text-purple-700 rounded-lg"><i data-lucide="package-x" class="w-4 h-4"></i></span>
+            </div>
+            <p id="kpi-missing" class="text-2xl font-bold text-purple-600 mt-1">0</p>
+            <span class="text-[10px] text-slate-400">已鎖定交接時間鏈</span>
+          </div>
+
+          <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-semibold text-slate-500">已結案存檔</span>
+              <span class="p-1.5 bg-emerald-100 text-emerald-700 rounded-lg"><i data-lucide="check-circle-2" class="w-4 h-4"></i></span>
+            </div>
+            <p id="kpi-resolved" class="text-2xl font-bold text-emerald-600 mt-1">0</p>
+            <span class="text-[10px] text-slate-400">責任判定完成</span>
+          </div>
+        </div>
+
+        <!-- 案件列表與過濾器 -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+          
+          <!-- 搜尋與過濾條件欄 -->
+          <div class="p-4 border-b border-slate-200 flex flex-col md:flex-row gap-3 items-center justify-between bg-slate-50/50">
+            <div class="relative w-full md:w-72">
+              <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-2.5"></i>
+              <input type="text" id="admin-search-input" oninput="renderReportList()" placeholder="搜尋車牌、司機或單號..." class="w-full text-xs pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
+            </div>
+
+            <div class="flex items-center gap-1.5 overflow-x-auto w-full md:w-auto pb-1 md:pb-0">
+              <button onclick="setFilter('all')" id="btn-filter-all" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-900 text-white shadow-sm">全部記錄</button>
+              <button onclick="setFilter('pending')" id="btn-filter-pending" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-100">待審核</button>
+              <button onclick="setFilter('incident')" id="btn-filter-incident" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-100">碰撞/損壞</button>
+              <button onclick="setFilter('missing')" id="btn-filter-missing" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-100">物品缺失</button>
+            </div>
+          </div>
+
+          <!-- 列表卡片容器 -->
+          <div id="reports-table-container" class="divide-y divide-slate-100"></div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- ================= 模態視窗 1：司機提交成功回執 ================= -->
+  <div id="driver-success-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl p-6 max-w-sm w-full text-center space-y-4 shadow-2xl animate-fade-in">
+      <div class="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto shadow-inner">
+        <i data-lucide="badge-check" class="w-8 h-8"></i>
+      </div>
+      <div>
+        <h3 class="text-base font-bold text-slate-800">雲端申報提交成功！</h3>
+        <p class="text-xs text-slate-500 mt-1">申報流水單號：</p>
+        <p id="receipt-id" class="font-mono font-bold text-lg text-emerald-600 bg-emerald-50 py-1 rounded-xl mt-1">#REP-8831</p>
+      </div>
+      <p class="text-xs text-slate-500 text-left bg-slate-50 p-3 rounded-xl border border-slate-100">
+        數據已成功寫入 Supabase 雲端資料庫，主管後台可即時查閱。
+      </p>
+      <button onclick="closeDriverModal()" class="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl shadow transition">
+        完成並返回填報首頁
+      </button>
+    </div>
+  </div>
+
+  <!-- ================= 模態視窗 2：主管案件深度審查與裁決面板 ================= -->
+  <div id="admin-detail-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-2xl w-full max-h-[92vh] flex flex-col shadow-2xl overflow-hidden animate-fade-in">
+      
+      <!-- Modal 頂部 -->
+      <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <i data-lucide="file-check" class="w-5 h-5 text-amber-400"></i>
+          <div>
+            <h3 class="text-sm font-bold">案件詳細報告與雲端主管裁決</h3>
+            <p id="detail-modal-sub" class="text-[10px] text-slate-400">單號：#REP-0000 · 提交時間：2026-08-31</p>
+          </div>
+        </div>
+        <button onclick="closeAdminDetailModal()" class="text-slate-400 hover:text-white p-1 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Modal 滾動內容 -->
+      <div id="admin-detail-body" class="p-6 overflow-y-auto space-y-5 text-xs text-slate-700 flex-1"></div>
+
+      <!-- Modal 底部按鈕 -->
+      <div class="px-6 py-3.5 bg-slate-50 border-t border-slate-200 flex items-center justify-between no-print">
+        <button onclick="printCurrentReport()" class="px-3.5 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl font-bold flex items-center gap-1.5 transition">
+          <i data-lucide="printer" class="w-4 h-4"></i>
+          <span>列印 / 存為 PDF</span>
+        </button>
+        <button onclick="saveAdminVerdict()" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold shadow-md shadow-emerald-500/20 transition flex items-center gap-1.5">
+          <i data-lucide="save" class="w-4 h-4"></i>
+          <span>儲存主管裁決至雲端</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ================= 系統邏輯與 Supabase 連線腳本 ================= -->
+  <script>
+    // 初始化 Lucide 圖標
+    lucide.createIcons();
+
+    // ==========================================
+    // ⚙️ SUPABASE 配置 (請替換為您的 Supabase 專案資訊)
+    // ==========================================
+    const SUPABASE_URL = 'https://YOUR_SUPABASE_PROJECT_ID.supabase.co';
+    const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+    
+    // 初始化 Supabase Client
+    const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
+    // ---------------- 全域資料庫快取 ----------------
+    let reportsDatabase = [];
+
+    // 司機表單當前狀態：儲存各位置的獨立物件
+    let driverDamageRecords = [];
+    let currentMockPhotos = [];
+    let customToolsList = [];
+    let activeAdminReportId = null;
+    let currentFilter = "all";
+    let isAdminLoggedIn = false;
+
+    // ---------------- 從 Supabase 載入數據 ----------------
+    async function fetchReportsFromSupabase() {
+      if (!supabaseClient) {
+        // 若未填入真實 Supabase Key，載入預設示範數據供本地預覽
+        console.warn("尚未設定 Supabase 金鑰，載入本地預設示範數據。");
+        loadDefaultMockData();
+        return;
+      }
+
+      try {
+        const { data, error } = await supabaseClient
+          .from('vehicle_reports')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        reportsDatabase = (data || []).map(row => ({
+          id: row.report_id || row.id,
+          plate: row.plate,
+          driver: row.driver,
+          timestamp: row.timestamp,
+          location: row.location,
+          type: row.type,
+          keyNotes: row.key_notes,
+          toolsStatus: row.tools_status || {},
+          missingTools: row.missing_tools || [],
+          damageItems: row.damage_items || [],
+          description: row.description,
+          photosCount: row.photos_count || 1,
+          hasSignature: row.has_signature || true,
+          status: row.status || 'pending',
+          verdict: row.verdict || null,
+          dbId: row.id // Supabase 內部 UUID
+        }));
+
+        updateKpis();
+        if (isAdminLoggedIn) renderReportList();
+      } catch (err) {
+        console.error("載入 Supabase 數據失敗:", err.message);
+        loadDefaultMockData();
+      }
+    }
+
+    function loadDefaultMockData() {
+      reportsDatabase = [
+        {
+          id: "REP-9102",
+          plate: "UV 8821",
+          driver: "陳志強 (司機)",
+          timestamp: "2026-08-31 08:30",
+          location: "工場內部 - 停車/移車區",
+          type: "incident",
+          keyNotes: "正匙1條 (原廠遙控合一)",
+          toolsStatus: { "跟車車匙": true, "隨車工具包": true, "油壓千斤頂": true, "後備輪胎": true, "行車記錄器記憶卡": true, "隧道卡/油卡": true, "尾板遙控器 (自訂)": true },
+          missingTools: [],
+          damageItems: [
+            { zoneId: "dzone-rl", zoneName: "左後輪拱/車身", types: ["凹陷", "刮花"], desc: "倒車時觸碰鐵柱防撞角，約 8cm 凹痕露出底漆" },
+            { zoneId: "dzone-rear", zoneName: "車尾保險槓 (Rear)", types: ["刮花"], desc: "左下角塑料有 10cm 摩擦刮痕" }
+          ],
+          description: "於工場內倒車移至B2車位時，因視線死角左後保險槓及輪拱觸碰鐵柱防撞角。",
+          photosCount: 2,
+          hasSignature: true,
+          status: "pending",
+          verdict: { liability: "100% 員工操作疏忽責任", action: "扣除法定工資賠償 (HK$300上限) + 口頭警告", adminNotes: "已調取工場監視器 CCTV-03 核實。" }
+        }
+      ];
+      updateKpis();
+    }
+
+    // ---------------- 動態自訂跟車物品 ----------------
+    function addCustomToolItem(name) {
+      const input = document.getElementById('custom-tool-input');
+      const itemName = (name || input.value).trim();
+      if (!itemName) return;
+
+      if (customToolsList.some(item => item.name === itemName)) {
+        input.value = '';
+        return;
+      }
+
+      customToolsList.push({ id: 'cust_' + Date.now(), name: itemName, checked: true });
+      input.value = '';
+      renderCustomTools();
+    }
+
+    function quickAddTool(name) { addCustomToolItem(name); }
+    function removeCustomTool(id) {
+      customToolsList = customToolsList.filter(item => item.id !== id);
+      renderCustomTools();
+    }
+    function toggleCustomToolCheck(id, isChecked) {
+      const target = customToolsList.find(item => item.id === id);
+      if (target) target.checked = isChecked;
+    }
+
+    function renderCustomTools() {
+      const container = document.getElementById('custom-tools-container');
+      if (customToolsList.length === 0) { container.innerHTML = ''; return; }
+      container.innerHTML = customToolsList.map(item => `
+        <div class="flex items-center justify-between p-2 bg-indigo-50/70 hover:bg-indigo-50 rounded-xl border border-indigo-200 transition text-xs">
+          <label class="flex items-center gap-2 flex-1 cursor-pointer">
+            <input type="checkbox" ${item.checked ? 'checked' : ''} onchange="toggleCustomToolCheck('${item.id}', this.checked)" class="w-4 h-4 text-indigo-600 rounded focus:ring-0">
+            <span class="font-semibold text-indigo-950 flex items-center gap-1.5"><i data-lucide="tag" class="w-3.5 h-3.5 text-indigo-600"></i> ${item.name}</span>
+          </label>
+          <button type="button" onclick="removeCustomTool('${item.id}')" class="text-slate-400 hover:text-red-500 p-1 rounded transition"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+        </div>
+      `).join('');
+      lucide.createIcons();
+    }
+
+    // ---------------- 頁面導航切換 ----------------
+    function navigateTo(targetPage) {
+      const pageDriver = document.getElementById('page-driver');
+      const pageAdmin = document.getElementById('page-admin');
+      const navDriverBtn = document.getElementById('nav-driver-btn');
+      const navAdminBtn = document.getElementById('nav-admin-btn');
+
+      if (targetPage === 'driver') {
+        pageDriver.classList.remove('hidden');
+        pageAdmin.classList.add('hidden');
+        navDriverBtn.className = "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-600 text-white shadow-sm transition";
+        navAdminBtn.className = "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 transition";
+      } else {
+        pageDriver.classList.add('hidden');
+        pageAdmin.classList.remove('hidden');
+        navAdminBtn.className = "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-600 text-white shadow-sm transition";
+        navDriverBtn.className = "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 transition";
+
+        if (!isAdminLoggedIn) {
+          document.getElementById('admin-login-screen').classList.remove('hidden');
+          document.getElementById('admin-dashboard').classList.add('hidden');
+        } else {
+          document.getElementById('admin-login-screen').classList.add('hidden');
+          document.getElementById('admin-dashboard').classList.remove('hidden');
+          fetchReportsFromSupabase();
+        }
+      }
+      lucide.createIcons();
+    }
+
+    // ---------------- 主管登入 ----------------
+    function handleAdminLogin() {
+      const pin = document.getElementById('admin-pin-input').value;
+      const errorEl = document.getElementById('login-error-msg');
+      if (pin === "8888") {
+        isAdminLoggedIn = true;
+        errorEl.classList.add('hidden');
+        document.getElementById('admin-login-screen').classList.add('hidden');
+        document.getElementById('admin-dashboard').classList.remove('hidden');
+        fetchReportsFromSupabase();
+      } else {
+        errorEl.classList.remove('hidden');
+      }
+    }
+
+    function quickFillPin() {
+      document.getElementById('admin-pin-input').value = '8888';
+      handleAdminLogin();
+    }
+
+    function adminLogout() {
+      isAdminLoggedIn = false;
+      document.getElementById('admin-pin-input').value = '';
+      document.getElementById('admin-dashboard').classList.add('hidden');
+      document.getElementById('admin-login-screen').classList.remove('hidden');
+    }
+
+    // ---------------- 車身點擊與獨立描述管理 ----------------
+    function toggleDamageForm(type) {
+      const panel = document.getElementById('driver-damage-panel');
+      if (type === 'incident') panel.classList.add('ring-2', 'ring-red-400');
+      else panel.classList.remove('ring-2', 'ring-red-400');
+    }
+
+    function handleZoneClick(zoneName, elementId) {
+      const existingIndex = driverDamageRecords.findIndex(r => r.zoneId === elementId);
+      const svgEl = document.getElementById(elementId);
+
+      if (existingIndex > -1) {
+        const cardEl = document.getElementById(`card-${elementId}`);
+        if (cardEl) {
+          cardEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          cardEl.classList.add('ring-2', 'ring-blue-500');
+          setTimeout(() => cardEl.classList.remove('ring-2', 'ring-blue-500'), 1500);
+        }
+      } else {
+        driverDamageRecords.push({ zoneId: elementId, zoneName: zoneName, types: ["刮花"], desc: "" });
+        if (svgEl) svgEl.classList.add('active-damage');
+        renderDamageCards();
+      }
+    }
+
+    function removeDamageZone(elementId) {
+      driverDamageRecords = driverDamageRecords.filter(r => r.zoneId !== elementId);
+      const svgEl = document.getElementById(elementId);
+      if (svgEl) svgEl.classList.remove('active-damage');
+      renderDamageCards();
+    }
+
+    function updateDamageZoneType(elementId, typeName, isChecked) {
+      const target = driverDamageRecords.find(r => r.zoneId === elementId);
+      if (!target) return;
+      if (isChecked) { if (!target.types.includes(typeName)) target.types.push(typeName); }
+      else { target.types = target.types.filter(t => t !== typeName); }
+    }
+
+    function updateDamageZoneDesc(elementId, text) {
+      const target = driverDamageRecords.find(r => r.zoneId === elementId);
+      if (target) target.desc = text;
+    }
+
+    function clearDriverZones() {
+      driverDamageRecords = [];
+      document.querySelectorAll('#driver-damage-panel .car-zone').forEach(el => el.classList.remove('active-damage'));
+      renderDamageCards();
+    }
+
+    function renderDamageCards() {
+      const container = document.getElementById('damage-zones-cards-container');
+      const badge = document.getElementById('damage-count-badge');
+      const noDamageTip = document.getElementById('no-damage-tip');
+
+      badge.textContent = driverDamageRecords.length;
+
+      if (driverDamageRecords.length === 0) {
+        noDamageTip.classList.remove('hidden');
+        container.innerHTML = `<div class="p-4 bg-slate-50 border border-dashed border-slate-200 rounded-xl text-center text-xs text-slate-400">請在上方車身方位圖點選受損部位以輸入詳細情況</div>`;
+        return;
+      }
+
+      noDamageTip.classList.add('hidden');
+      const availableTypes = ['刮花', '凹陷', '破裂', '掉漆', '變形/破損'];
+
+      container.innerHTML = driverDamageRecords.map(item => `
+        <div id="card-${item.zoneId}" class="bg-red-50/50 border border-red-200 rounded-2xl p-3.5 space-y-2.5 transition shadow-sm">
+          <div class="flex items-center justify-between border-b border-red-100 pb-2">
+            <span class="font-bold text-red-900 text-xs flex items-center gap-1.5"><i data-lucide="map-pin" class="w-4 h-4 text-red-600"></i> ${item.zoneName}</span>
+            <button type="button" onclick="removeDamageZone('${item.zoneId}')" class="text-xs text-slate-400 hover:text-red-600 flex items-center gap-1 transition"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i><span>移除</span></button>
+          </div>
+          <div>
+            <span class="block text-[11px] font-semibold text-slate-600 mb-1">損壞特徵 (可多選)：</span>
+            <div class="flex flex-wrap gap-1.5">
+              ${availableTypes.map(t => {
+                const checked = item.types.includes(t);
+                return `<label class="cursor-pointer text-[11px] px-2.5 py-1 rounded-lg border transition flex items-center gap-1 ${checked ? 'bg-red-600 text-white border-red-600 font-bold' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'}"><input type="checkbox" class="hidden" ${checked ? 'checked' : ''} onchange="updateDamageZoneType('${item.zoneId}', '${t}', this.checked); renderDamageCards();"><span>${checked ? '✓ ' : ''}${t}</span></label>`;
+              }).join('')}
+            </div>
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-600 mb-1">該位置具體情況描述：</label>
+            <input type="text" value="${item.desc || ''}" oninput="updateDamageZoneDesc('${item.zoneId}', this.value)" placeholder="例: 刮痕長度約 5cm / 凹陷直徑約 3cm..." class="w-full text-xs px-3 py-2 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-red-400 outline-none">
+          </div>
+        </div>
+      `).join('');
+      lucide.createIcons();
+    }
+
+    // ---------------- 拍照與簽名 ----------------
+    function addMockPhoto() {
+      if (currentMockPhotos.length >= 3) return;
+      const count = currentMockPhotos.length + 1;
+      currentMockPhotos.push(`photo_${count}.jpg`);
+      const previewContainer = document.getElementById('driver-photos-preview');
+      const div = document.createElement('div');
+      div.className = "h-20 bg-slate-200 border border-slate-300 rounded-xl flex flex-col items-center justify-center text-[10px] text-slate-600 relative overflow-hidden";
+      div.innerHTML = `<i data-lucide="image" class="w-4 h-4 text-slate-500 mb-1"></i><span>照片 ${count}</span><span class="text-[8px] text-slate-400">已打上時間浮水印</span>`;
+      previewContainer.appendChild(div);
+      lucide.createIcons();
+    }
+
+    const sigCanvas = document.getElementById('signature-pad');
+    const sigCtx = sigCanvas.getContext('2d');
+    let isDrawingSig = false;
+
+    function initSigCanvas() {
+      const rect = sigCanvas.getBoundingClientRect();
+      sigCanvas.width = rect.width;
+      sigCanvas.height = rect.height;
+      sigCtx.strokeStyle = '#0f172a';
+      sigCtx.lineWidth = 2.5;
+      sigCtx.lineCap = 'round';
+    }
+
+    window.addEventListener('load', () => { initSigCanvas(); renderDamageCards(); fetchReportsFromSupabase(); });
+    window.addEventListener('resize', initSigCanvas);
+
+    function startSig(e) { isDrawingSig = true; const pos = getSigPos(e); sigCtx.beginPath(); sigCtx.moveTo(pos.x, pos.y); }
+    function drawSig(e) { if (!isDrawingSig) return; const pos = getSigPos(e); sigCtx.lineTo(pos.x, pos.y); sigCtx.stroke(); e.preventDefault(); }
+    function stopSig() { isDrawingSig = false; }
+    function getSigPos(e) {
+      const rect = sigCanvas.getBoundingClientRect();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      return { x: clientX - rect.left, y: clientY - rect.top };
+    }
+
+    sigCanvas.addEventListener('mousedown', startSig);
+    sigCanvas.addEventListener('mousemove', drawSig);
+    window.addEventListener('mouseup', stopSig);
+    sigCanvas.addEventListener('touchstart', startSig, { passive: false });
+    sigCanvas.addEventListener('touchmove', drawSig, { passive: false });
+    window.addEventListener('touchend', stopSig);
+
+    function clearSignatureCanvas() { sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height); }
+
+    // ---------------- 司機表單提交 (寫入 Supabase) ----------------
+    async function handleDriverSubmit(e) {
+      e.preventDefault();
+
+      const plate = document.getElementById('form-plate').value.trim().toUpperCase();
+      const driver = document.getElementById('form-driver').value.trim();
+      const location = document.getElementById('form-location').value;
+      const type = document.getElementById('form-type').value;
+      const desc = document.getElementById('form-desc').value.trim();
+      const keyNotes = document.getElementById('tool-key-notes').value.trim() || '正常 (正匙1條)';
+
+      const toolsCheckboxes = document.querySelectorAll('input[name="driver-tools"]');
+      const toolsStatus = {};
+      const missingTools = [];
+
+      toolsCheckboxes.forEach(cb => {
+        toolsStatus[cb.value] = cb.checked;
+        if (!cb.checked) missingTools.push(cb.value);
+      });
+
+      customToolsList.forEach(cTool => {
+        const keyName = `${cTool.name} (自訂)`;
+        toolsStatus[keyName] = cTool.checked;
+        if (!cTool.checked) missingTools.push(keyName);
+      });
+
+      const newId = 'REP-' + Math.floor(1000 + Math.random() * 9000);
+      const now = new Date();
+      const timestamp = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+
+      const payload = {
+        report_id: newId,
+        plate: plate,
+        driver: driver,
+        timestamp: timestamp,
+        location: location,
+        type: (type === 'incident' || driverDamageRecords.length > 0 || missingTools.length > 0) ? 'incident' : 'routine',
+        key_notes: keyNotes,
+        tools_status: toolsStatus,
+        missing_tools: missingTools,
+        damage_items: JSON.parse(JSON.stringify(driverDamageRecords)),
+        description: desc || '日常交收回報，無特別異狀。',
+        photos_count: currentMockPhotos.length || 1,
+        has_signature: true,
+        status: 'pending',
+        verdict: null
+      };
+
+      if (supabaseClient) {
+        const { error } = await supabaseClient.from('vehicle_reports').insert([payload]);
+        if (error) {
+          alert("雲端提交失敗: " + error.message);
+          return;
+        }
+      }
+
+      document.getElementById('receipt-id').textContent = '#' + newId;
+      document.getElementById('driver-success-modal').classList.remove('hidden');
+      fetchReportsFromSupabase();
+    }
+
+    function closeDriverModal() {
+      document.getElementById('driver-success-modal').classList.add('hidden');
+      document.getElementById('driver-form').reset();
+      clearDriverZones();
+      clearSignatureCanvas();
+      currentMockPhotos = [];
+      customToolsList = [];
+      renderCustomTools();
+      document.getElementById('driver-photos-preview').innerHTML = '';
+    }
+
+    // ---------------- 主管後台功能 ----------------
+    function updatePendingBadge() {
+      const pendingCount = reportsDatabase.filter(r => r.status === 'pending').length;
+      const badge = document.getElementById('badge-pending');
+      badge.textContent = pendingCount;
+      badge.className = pendingCount === 0 
+        ? "ml-1 bg-emerald-500 text-white font-bold text-[10px] px-1.5 py-0.2 rounded-full"
+        : "ml-1 bg-amber-500 text-slate-950 font-bold text-[10px] px-1.5 py-0.2 rounded-full";
+    }
+
+    function updateKpis() {
+      const pending = reportsDatabase.filter(r => r.status === 'pending').length;
+      const incidents = reportsDatabase.filter(r => r.type === 'incident').length;
+      const missing = reportsDatabase.filter(r => r.missingTools.length > 0).length;
+      const resolved = reportsDatabase.filter(r => r.status === 'resolved').length;
+
+      document.getElementById('kpi-pending').textContent = pending;
+      document.getElementById('kpi-incidents').textContent = incidents;
+      document.getElementById('kpi-missing').textContent = missing;
+      document.getElementById('kpi-resolved').textContent = resolved;
+      updatePendingBadge();
+    }
+
+    function setFilter(filter) {
+      currentFilter = filter;
+      ['all', 'pending', 'incident', 'missing'].forEach(f => {
+        const btn = document.getElementById(`btn-filter-${f}`);
+        if (f === filter) btn.className = "px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-900 text-white shadow-sm";
+        else btn.className = "px-3 py-1.5 text-xs font-semibold rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-100";
+      });
+      renderReportList();
+    }
+
+    function renderReportList() {
+      const container = document.getElementById('reports-table-container');
+      const keyword = document.getElementById('admin-search-input').value.trim().toUpperCase();
+
+      let filtered = reportsDatabase.filter(item => {
+        const matchSearch = item.plate.includes(keyword) || item.driver.includes(keyword) || item.id.includes(keyword);
+        if (!matchSearch) return false;
+        if (currentFilter === 'pending') return item.status === 'pending';
+        if (currentFilter === 'incident') return item.type === 'incident';
+        if (currentFilter === 'missing') return item.missingTools.length > 0;
+        return true;
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = `<div class="p-8 text-center text-slate-400 space-y-2"><i data-lucide="inbox" class="w-8 h-8 mx-auto text-slate-300"></i><p class="text-xs">沒有符合條件的雲端申報記錄</p></div>`;
+        lucide.createIcons();
+        return;
+      }
+
+      container.innerHTML = filtered.map(item => {
+        const isPending = item.status === 'pending';
+        const hasMissing = item.missingTools.length > 0;
+        const damageCount = item.damageItems ? item.damageItems.length : 0;
+
+        return `
+          <div class="p-4 hover:bg-slate-50/80 transition flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div class="space-y-1.5 flex-1">
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="font-mono font-bold text-sm text-slate-900 bg-slate-100 px-2 py-0.5 rounded border">${item.plate}</span>
+                <span class="text-xs text-slate-600 font-semibold">${item.driver}</span>
+                <span class="text-[11px] font-mono text-slate-400">#${item.id}</span>
+                ${isPending ? `<span class="text-[10px] bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded-full flex items-center gap-1"><i data-lucide="clock" class="w-3 h-3"></i>待主管審核</span>` : `<span class="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full flex items-center gap-1"><i data-lucide="check" class="w-3 h-3"></i>已結案裁決</span>`}
+              </div>
+              <div class="flex items-center gap-3 text-xs text-slate-500 flex-wrap">
+                <span><i data-lucide="calendar" class="w-3.5 h-3.5 inline mr-1 text-slate-400"></i>${item.timestamp}</span>
+                <span><i data-lucide="map-pin" class="w-3.5 h-3.5 inline mr-1 text-slate-400"></i>${item.location}</span>
+                <span><i data-lucide="key" class="w-3.5 h-3.5 inline mr-1 text-blue-500"></i>車匙: ${item.keyNotes || '正匙'}</span>
+              </div>
+              <div class="flex items-center gap-2 text-xs pt-1">
+                ${damageCount > 0 ? `<span class="text-red-700 bg-red-50 border border-red-200 px-2 py-0.5 rounded text-[11px] font-medium">受損位置 (${damageCount} 處詳細記錄)</span>` : `<span class="text-slate-500 bg-slate-100 px-2 py-0.5 rounded text-[11px]">車身完好</span>`}
+                ${hasMissing ? `<span class="text-purple-700 bg-purple-50 border border-purple-200 px-2 py-0.5 rounded text-[11px] font-bold">缺失：${item.missingTools.join(', ')}</span>` : `<span class="text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded text-[11px]">隨車物品齊全</span>`}
+              </div>
+            </div>
+            <div class="flex items-center gap-2 self-end md:self-center flex-shrink-0">
+              <button onclick="openAdminDetailModal('${item.id}')" class="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-sm transition flex items-center gap-1.5"><i data-lucide="eye" class="w-3.5 h-3.5"></i><span>${isPending ? '審核並判定責任' : '檢視完整報告'}</span></button>
+            </div>
+          </div>
+        `;
+      }).join('');
+      lucide.createIcons();
+    }
+
+    // ---------------- 主管案件深審與寫入裁決 ----------------
+    function openAdminDetailModal(reportId) {
+      activeAdminReportId = reportId;
+      const report = reportsDatabase.find(r => r.id === reportId);
+      if (!report) return;
+
+      document.getElementById('detail-modal-sub').textContent = `單號：#${report.id} · 提交時間：${report.timestamp}`;
+      const body = document.getElementById('admin-detail-body');
+
+      const isPending = report.status === 'pending';
+      const verdict = report.verdict || { liability: "100% 員工操作疏忽責任", action: "口頭警告 + 檢討操作流程", adminNotes: "" };
+      const damageList = report.damageItems || [];
+
+      body.innerHTML = `
+        <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div><span class="text-slate-400 block text-[10px]">車牌號碼</span><span class="text-sm font-bold text-slate-900 font-mono">${report.plate}</span></div>
+          <div><span class="text-slate-400 block text-[10px]">當事司機</span><span class="text-xs font-bold text-slate-800">${report.driver}</span></div>
+          <div><span class="text-slate-400 block text-[10px]">發生地點</span><span class="text-xs font-medium text-slate-700">${report.location}</span></div>
+          <div><span class="text-slate-400 block text-[10px]">狀態</span><span class="text-xs font-bold ${isPending ? 'text-amber-600' : 'text-emerald-600'}">${isPending ? '待審核' : '已結案'}</span></div>
+        </div>
+
+        <div class="border border-slate-200 rounded-2xl p-3.5 space-y-2">
+          <div class="flex items-center justify-between">
+            <h4 class="font-bold text-slate-800 flex items-center gap-1.5 text-xs"><i data-lucide="package-check" class="w-4 h-4 text-emerald-600"></i> 隨車車匙與跟車物品點收明細</h4>
+            <span class="text-[10px] text-blue-600 bg-blue-50 px-2 py-0.5 rounded border border-blue-100 font-medium">車匙：${report.keyNotes || '正匙'}</span>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-2 pt-1">
+            ${Object.keys(report.toolsStatus).map(tool => {
+              const inPlace = report.toolsStatus[tool];
+              return `<div class="flex items-center justify-between p-2 rounded-lg ${!inPlace ? 'bg-red-50 text-red-700 border border-red-200 font-bold' : 'bg-emerald-50/60 text-emerald-800 border border-emerald-100'}"><span>${tool}</span><span class="text-[10px]">${inPlace ? '✓ 在位' : '✕ 缺失'}</span></div>`;
+            }).join('')}
+          </div>
+        </div>
+
+        <div class="border border-slate-200 rounded-2xl p-3.5 space-y-3">
+          <h4 class="font-bold text-slate-800 flex items-center gap-1.5 text-xs"><i data-lucide="alert-triangle" class="w-4 h-4 text-red-600"></i> 各受損部位獨立情況記錄 (${damageList.length} 處)</h4>
+          ${damageList.length === 0 ? `<div class="p-3 bg-slate-50 text-slate-500 rounded-xl text-xs">車身外觀完好。</div>` : `<div class="space-y-2">${damageList.map(item => `<div class="bg-red-50/40 border border-red-200 rounded-xl p-3 space-y-1"><div class="flex items-center justify-between"><span class="font-bold text-red-900 text-xs">${item.zoneName}</span><div class="flex gap-1">${(item.types||[]).map(t => `<span class="bg-red-600 text-white text-[10px] px-1.5 py-0.5 rounded">${t}</span>`).join('')}</div></div><p class="text-xs text-slate-700 bg-white/80 p-2 rounded-lg">${item.desc || '無詳細描述'}</p></div>`).join('')}</div>`}
+          <div class="bg-slate-50 p-2.5 rounded-xl text-xs"><p><strong>司機整體陳述：</strong> ${report.description}</p></div>
+        </div>
+
+        <div class="border-2 border-emerald-100 bg-emerald-50/40 rounded-2xl p-4 space-y-3">
+          <h4 class="font-bold text-emerald-900 flex items-center gap-1.5 text-xs"><i data-lucide="gavel" class="w-4 h-4 text-emerald-700"></i> 主管責任判定與懲處措施</h4>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[11px] font-bold text-slate-700 mb-1">責任歸屬判定 *</label>
+              <select id="modal-verdict-liability" class="w-full text-xs p-2 bg-white border border-slate-300 rounded-xl">
+                <option value="100% 員工操作疏忽責任" ${verdict.liability?.includes('100%') ? 'selected' : ''}>100% 員工操作疏忽責任</option>
+                <option value="第三方全責 (已備案)" ${verdict.liability?.includes('第三方') ? 'selected' : ''}>第三方全責 (已備案/索賠)</option>
+                <option value="不可抗力 / 工場盲點意外" ${verdict.liability?.includes('不可抗力') ? 'selected' : ''}>不可抗力 / 工場盲點意外</option>
+                <option value="既有舊傷免責" ${verdict.liability?.includes('舊傷') ? 'selected' : ''}>既有舊傷免責</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-[11px] font-bold text-slate-700 mb-1">後續跟進措施 *</label>
+              <select id="modal-verdict-action" class="w-full text-xs p-2 bg-white border border-slate-300 rounded-xl">
+                <option value="內部口頭警告 + 檢討操作流程">內部口頭警告 + 檢討操作流程</option>
+                <option value="發出正式書面警告信">發出正式書面警告信 (Warning Letter)</option>
+                <option value="扣除法定工資賠償 (HK$300上限)">扣除法定工資損耗賠償 (HK$300上限)</option>
+                <option value="呈報保險公司處理">呈報保險公司索賠</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-slate-700 mb-1">主管審核評語備註</label>
+            <textarea id="modal-verdict-notes" rows="2" placeholder="輸入主管裁決原因..." class="w-full text-xs p-2 bg-white border border-slate-300 rounded-xl">${verdict.adminNotes || ''}</textarea>
+          </div>
+        </div>
+      `;
+      document.getElementById('admin-detail-modal').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closeAdminDetailModal() {
+      document.getElementById('admin-detail-modal').classList.add('hidden');
+      activeAdminReportId = null;
+    }
+
+    async function saveAdminVerdict() {
+      if (!activeAdminReportId) return;
+      const report = reportsDatabase.find(r => r.id === activeAdminReportId);
+      if (!report) return;
+
+      const liability = document.getElementById('modal-verdict-liability').value;
+      const action = document.getElementById('modal-verdict-action').value;
+      const notes = document.getElementById('modal-verdict-notes').value.trim();
+
+      const newVerdict = { liability, action, adminNotes: notes || '主管已確認核准。', reviewer: "車隊主管 - 王經理" };
+
+      if (supabaseClient && report.dbId) {
+        const { error } = await supabaseClient
+          .from('vehicle_reports')
+          .update({ status: 'resolved', verdict: newVerdict })
+          .eq('id', report.dbId);
+
+        if (error) {
+          alert("更新雲端審核失敗: " + error.message);
+          return;
+        }
+      }
+
+      closeAdminDetailModal();
+      fetchReportsFromSupabase();
+    }
+
+    function printCurrentReport() { window.print(); }
+
+    function exportCSV() {
+      let csv = "單號,車牌,司機,時間,地點,車匙狀況,申報類型,缺失物品,各受損部位及描述,責任判定,處理措施\n";
+      reportsDatabase.forEach(r => {
+        const missing = (r.missingTools || []).join(';') || "無";
+        const damageDetails = (r.damageItems || []).map(d => `${d.zoneName}:[${(d.types||[]).join('+')}]${d.desc||''}`).join(' | ') || "無";
+        const keyInfo = r.keyNotes || "正常";
+        const liability = r.verdict ? r.verdict.liability : "待審核";
+        const action = r.verdict ? r.verdict.action : "待審核";
+        csv += `"${r.id}","${r.plate}","${r.driver}","${r.timestamp}","${r.location}","${keyInfo}","${r.type}","${missing}","${damageDetails}","${liability}","${action}"\n`;
+      });
+      const blob = new Blob(["\ufeff" + csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", `車隊事故與交收記錄_${new Date().toISOString().slice(0,10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  </script>
+</body>
+</html>
