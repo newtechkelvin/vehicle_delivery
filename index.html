@@ -565,49 +565,50 @@
     let isAdminLoggedIn = false;
 
     // ---------------- 從 Supabase 載入數據 ----------------
-    async function fetchReportsFromSupabase() {
-      if (!supabaseClient) {
-        // 若未填入真實 Supabase Key，載入預設示範數據供本地預覽
-        console.warn("尚未設定 Supabase 金鑰，載入本地預設示範數據。");
-        loadDefaultMockData();
-        return;
-      }
+    // ---------------- 從 Supabase 載入數據 ----------------
+async function fetchReportsFromSupabase() {
+  if (!supabaseClient) {
+    console.warn("尚未設定 Supabase 金鑰，載入本地預設示範數據。");
+    loadDefaultMockData();
+    return;
+  }
 
-      try {
-        const { data, error } = await supabaseClient
-          .from('vehicle_reports')
-          .select('*')
-          .order('created_at', { ascending: false });
+  try {
+    const { data, error } = await supabaseClient
+      .from('vehicle_reports')
+      .select('*')
+      .order('created_at', { ascending: false });
 
-        if (error) throw error;
+    if (error) throw error;
 
-        reportsDatabase = (data || []).map(row => ({
-          id: row.report_id || row.id,
-          plate: row.plate,
-          driver: row.driver,
-          timestamp: row.timestamp,
-          location: row.location,
-          type: row.type,
-          keyNotes: row.key_notes,
-          toolsStatus: row.tools_status || {},
-          missingTools: row.missing_tools || [],
-          damageItems: row.damage_items || [],
-          description: row.description,
-          photosCount: row.photos_count || 1,
-          hasSignature: row.has_signature || true,
-          status: row.status || 'pending',
-          verdict: row.verdict || null,
-          dbId: row.id // Supabase 內部 UUID
-        }));
+    reportsDatabase = (data || []).map(row => ({
+      id: row.report_id || row.id,
+      plate: row.plate,
+      driver: row.driver,
+      timestamp: row.timestamp || row.created_at,
+      location: row.location,
+      type: row.type,
+      keyNotes: row.key_notes,
+      toolsStatus: row.tools_status || {},
+      missingTools: row.missing_tools || [],
+      damageItems: row.damage_items || [],
+      description: row.description,
+      photosCount: row.photos_count || 1,
+      hasSignature: row.has_signature || true,
+      status: row.status || 'pending',
+      verdict: row.verdict || null,
+      dbId: row.id 
+    }));
 
-        updateKpis();
-        if (isAdminLoggedIn) renderReportList();
-      } catch (err) {
-        console.error("載入 Supabase 數據失敗:", err.message);
-        loadDefaultMockData();
-      }
+    updateKpis();
+    if (typeof isAdminLoggedIn !== 'undefined' && isAdminLoggedIn) {
+      renderReportList();
     }
-
+  } catch (err) {
+    console.error("載入 Supabase 數據失敗:", err.message);
+    loadDefaultMockData();
+  }
+}
     function loadDefaultMockData() {
       reportsDatabase = [
         {
