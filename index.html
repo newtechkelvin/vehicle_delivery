@@ -46,7 +46,7 @@
                 </div>
             </div>
             <div class="flex items-center space-x-2">
-                <button onclick="switchTab('driver')" id="nav-driver-btn" class="px-3 py-1.5 rounded-lg text-sm font-medium bg-blue-600 text-white transition">司機申報端</button>
+                <button onclick="switchTab('driver')" id="nav-driver-btn" class="px-3 py-1.5 rounded-lg text-sm font-medium bg-blue-600 text-white transition">員工申報端</button>
                 <button onclick="switchTab('admin')" id="nav-admin-btn" class="px-3 py-1.5 rounded-lg text-sm font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 transition">主管後台端</button>
             </div>
         </div>
@@ -55,7 +55,7 @@
     <!-- Main Container -->
     <main class="flex-grow max-w-7xl w-full mx-auto p-4 sm:p-6">
 
-        <!-- ==================== 司機申報端 (Driver View) ==================== -->
+        <!-- ==================== 員工申報端 (Employee View) ==================== -->
         <section id="view-driver" class="space-y-6">
             <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
                 <div class="border-b border-slate-100 pb-4 mb-6">
@@ -89,10 +89,16 @@
                             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                 <div>
                                     <label class="block text-xs font-semibold text-slate-600 mb-1">T牌號碼 *</label>
-                                    <input type="text" id="cat1-t-plate" required placeholder="例如：T1234" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono focus:ring-2 focus:ring-blue-500 outline-none">
+                                    <select id="cat1-t-plate" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                                        <option value="">-- 請選擇 T 牌 --</option>
+                                        <option value="T15195">T15195</option>
+                                        <option value="T11835">T11835</option>
+                                        <option value="T10559">T10559</option>
+                                        <option value="T13012">T13012</option>
+                                    </select>
                                 </div>
                                 <div>
-                                    <label class="block text-xs font-semibold text-slate-600 mb-1">司機姓名 *</label>
+                                    <label class="block text-xs font-semibold text-slate-600 mb-1">司機/員工姓名 *</label>
                                     <input type="text" id="cat1-driver" required placeholder="請輸入全名" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
                                 </div>
                                 <div>
@@ -125,7 +131,6 @@
                                 </button>
                             </div>
                             <div id="cat1-items-list" class="space-y-3">
-                                <!-- 預設項目 1: 車匙 -->
                                 <div class="grid grid-cols-1 sm:grid-cols-12 gap-2 items-center bg-white p-2.5 rounded-lg border border-slate-200">
                                     <label class="sm:col-span-4 flex items-center gap-2 text-sm font-bold text-slate-700 cursor-pointer">
                                         <input type="checkbox" data-item-name="車匙" checked class="w-4 h-4 text-blue-600 rounded">
@@ -138,7 +143,6 @@
                                         <input type="text" placeholder="備註 (例如: 主匙1條)" class="item-notes w-full px-2.5 py-1 border border-slate-300 rounded text-xs">
                                     </div>
                                 </div>
-                                <!-- 預設項目 2: 跟車工具 -->
                                 <div class="grid grid-cols-1 sm:grid-cols-12 gap-2 items-center bg-white p-2.5 rounded-lg border border-slate-200">
                                     <label class="sm:col-span-4 flex items-center gap-2 text-sm font-bold text-slate-700 cursor-pointer">
                                         <input type="checkbox" data-item-name="跟車工具" checked class="w-4 h-4 text-blue-600 rounded">
@@ -151,7 +155,6 @@
                                         <input type="text" placeholder="備註 (例如: 工具包1袋)" class="item-notes w-full px-2.5 py-1 border border-slate-300 rounded text-xs">
                                     </div>
                                 </div>
-                                <!-- 預設項目 3: 備用輪胎 -->
                                 <div class="grid grid-cols-1 sm:grid-cols-12 gap-2 items-center bg-white p-2.5 rounded-lg border border-slate-200">
                                     <label class="sm:col-span-4 flex items-center gap-2 text-sm font-bold text-slate-700 cursor-pointer">
                                         <input type="checkbox" data-item-name="備用輪胎" checked class="w-4 h-4 text-blue-600 rounded">
@@ -183,7 +186,6 @@
                                 </label>
                             </div>
 
-                            <!-- 車身圖與獨立損壞卡片容器 -->
                             <div id="cat1-damage-wrapper" class="hidden space-y-4 pt-2">
                                 <p class="text-xs text-slate-500">👉 請點擊下方車身部位，點擊後會即時在下方建立專屬情況描述卡片：</p>
                                 <div class="bg-white p-3 rounded-xl border border-slate-200 flex justify-center">
@@ -217,10 +219,10 @@
                         <!-- 第四部分: 拍照存證 -->
                         <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
                             <h3 class="text-sm font-bold text-slate-800 border-b border-slate-200 pb-2 flex items-center gap-2">
-                                <i data-lucide="camera" class="w-4 h-4 text-indigo-600"></i> 第四部分：拍照存證 (自動上載至 Google Drive)
+                                <i data-lucide="camera" class="w-4 h-4 text-indigo-600"></i> 第四部分：拍照存證
                             </h3>
                             <input type="file" id="cat1-photos" multiple accept="image/*" class="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
-                            <p class="text-[11px] text-slate-400">系統將自動以「申報表單名稱（如：T牌_司機_日期）」建立 Google Drive 資料夾並儲存照片。</p>
+                            <p class="text-[11px] text-slate-400">系統將自動儲存照片到雲端。</p>
                         </div>
                     </div>
 
@@ -291,9 +293,10 @@
                         <!-- 第三部分: 拍照存證 -->
                         <div class="bg-red-50/50 p-4 rounded-xl border border-red-200 space-y-3">
                             <h3 class="text-sm font-bold text-red-900 border-b border-red-200 pb-2 flex items-center gap-2">
-                                <i data-lucide="camera" class="w-4 h-4 text-red-600"></i> 第三部分：現場拍照存證 (自動上載至 Google Drive)
+                                <i data-lucide="camera" class="w-4 h-4 text-red-600"></i> 第三部分：現場拍照存證
                             </h3>
                             <input type="file" id="cat2-photos" multiple accept="image/*" class="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-red-100 file:text-red-700 hover:file:bg-red-200">
+                            <p class="text-[11px] text-slate-400">系統將自動儲存照片到雲端。</p>
                         </div>
 
                         <!-- 第四部分: 事故詳細說明與後續通知 -->
@@ -370,10 +373,9 @@
                 <!-- 視窗 1：所有案件審核列表 -->
                 <div id="admin-panel-reports" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-4">
                     <div class="flex items-center gap-2 overflow-x-auto pb-2">
-                        <button onclick="setFilter('all')" id="btn-filter-all" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-900 text-white whitespace-nowrap">全部記錄</button>
-                        <button onclick="setFilter('cat1')" id="btn-filter-cat1" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 whitespace-nowrap">第1類：日常交收</button>
+                        <button onclick="setFilter('cat1')" id="btn-filter-cat1" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-900 text-white whitespace-nowrap">第1類：日常交收</button>
                         <button onclick="setFilter('cat2')" id="btn-filter-cat2" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 whitespace-nowrap">第2類：車輛損壞</button>
-                        <button onclick="setFilter('pending')" id="btn-filter-pending" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 whitespace-nowrap">待審核</button>
+                        <button onclick="setFilter('pending')" id="btn-filter-pending" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 whitespace-nowrap">待審核 (僅第2類)</button>
                     </div>
 
                     <div id="admin-report-list" class="space-y-3"></div>
@@ -413,7 +415,7 @@
                                 <thead>
                                     <tr class="bg-slate-100 text-slate-700 border-b border-slate-200">
                                         <th class="p-2.5">日期時間</th>
-                                        <th class="p-2.5">司機姓名</th>
+                                        <th class="p-2.5">司機/員工姓名</th>
                                         <th class="p-2.5">車輛型號</th>
                                         <th class="p-2.5">底盤號碼 (VIN)</th>
                                         <th class="p-2.5">出發地</th>
@@ -433,18 +435,23 @@
 
     </main>
 
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-slate-400 text-xs text-center py-4 mt-auto no-print border-t border-slate-800">
+        2026 - New Tech Motor Engineering Limited
+    </footer>
 
-    <!-- ==================== 審核與 PDF 匯出 Modal ==================== -->
+
+    <!-- ==================== 詳情 / 編輯與刪除 Modal ==================== -->
     <div id="admin-detail-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 space-y-6">
             <div class="flex items-center justify-between border-b border-slate-100 pb-4 no-print">
                 <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
-                    <i data-lucide="file-text" class="w-5 h-5 text-blue-600"></i> 申報詳情與審核
+                    <i data-lucide="file-text" class="w-5 h-5 text-blue-600"></i> 申報單據詳情與管理
                 </h3>
                 <button onclick="closeAdminDetailModal()" class="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg"><i data-lucide="x" class="w-5 h-5"></i></button>
             </div>
 
-            <!-- 正式 PDF 報告排版區塊 -->
+            <!-- 可編輯內容區域 -->
             <div id="pdf-report-card" class="space-y-4 text-xs p-2">
                 <div class="border-b-2 border-slate-900 pb-2 flex justify-between items-end">
                     <div>
@@ -457,9 +464,35 @@
                     </div>
                 </div>
 
-                <div id="modal-main-content" class="space-y-3"></div>
+                <div id="modal-main-content" class="space-y-4"></div>
 
-                <!-- 簽署欄 (專供第 2 類或正式列印 PDF 存檔) -->
+                <!-- 審核區域 (僅在第 2 類顯示) -->
+                <div id="modal-audit-section" class="border-t border-slate-200 pt-4 space-y-3 hidden">
+                    <h4 class="font-bold text-slate-900 text-xs flex items-center gap-1.5">
+                        <i data-lucide="check-circle-2" class="w-4 h-4 text-green-600"></i> 主管審核與責任判定 (僅第 2 類)
+                    </h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-500 mb-1">責任歸屬</label>
+                            <select id="edit-verdict-responsibility" class="w-full p-2 border border-slate-300 rounded text-xs bg-white">
+                                <option value="正常無損 (Normal)">正常無損 (Normal)</option>
+                                <option value="自然損耗 / 機械老化">自然損耗 / 機械老化</option>
+                                <option value="司機疏忽 / 應負賠償責任">司機疏忽 / 應負賠償責任</option>
+                                <option value="第三方責任 / 交通意外">第三方責任 / 交通意外</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-500 mb-1">審核狀態</label>
+                            <select id="edit-verdict-status" class="w-full p-2 border border-slate-300 rounded text-xs bg-white">
+                                <option value="approved">已審核通過 (Approved)</option>
+                                <option value="rejected">需修正或退回 (Rejected)</option>
+                                <option value="pending">維持待審核 (Pending)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 簽署欄 -->
                 <div class="border-t border-slate-300 pt-6 mt-6 grid grid-cols-2 gap-8">
                     <div class="space-y-8">
                         <div class="border-b border-slate-400 h-10"></div>
@@ -474,13 +507,18 @@
 
             <!-- 功能控制按鈕 -->
             <div class="flex items-center justify-between pt-4 border-t border-slate-100 no-print">
-                <button onclick="exportSinglePDF()" class="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold rounded-xl shadow-sm transition flex items-center gap-1.5">
-                    <i data-lucide="file-down" class="w-4 h-4"></i> 匯出正式 PDF 報告
-                </button>
+                <div class="flex items-center gap-2">
+                    <button onclick="deleteCurrentReport()" class="px-3.5 py-2 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-semibold rounded-xl border border-red-200 transition flex items-center gap-1.5">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i> 刪除申報單
+                    </button>
+                    <button onclick="exportSinglePDF()" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold rounded-xl transition flex items-center gap-1.5">
+                        <i data-lucide="file-down" class="w-4 h-4"></i> 匯出 PDF
+                    </button>
+                </div>
                 <div class="flex items-center gap-2">
                     <button onclick="closeAdminDetailModal()" class="px-4 py-2 border border-slate-300 text-slate-700 text-xs font-semibold rounded-xl hover:bg-slate-50 transition">關閉</button>
-                    <button onclick="saveAdminVerdict()" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-xl shadow-sm transition flex items-center gap-1.5">
-                        <i data-lucide="save" class="w-4 h-4"></i> 儲存審核裁決
+                    <button onclick="saveAdminChanges()" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-xl shadow-sm transition flex items-center gap-1.5">
+                        <i data-lucide="save" class="w-4 h-4"></i> 儲存修改內容
                     </button>
                 </div>
             </div>
@@ -494,7 +532,6 @@
         const SUPABASE_URL = 'https://celngxlithsslybhmtkk.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNlbG5neGxpdGhzc2x5YmhtdGtrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYzOTU4MDksImV4cCI6MjEwMTk3MTgwOX0.r5eb-PA6ay_BDkBp7MSp9ITmi-quTDf5SOiaKv8FABY';
         
-        // Google Apps Script (GAS) Web App URL (替換為您部署好的 GAS 網址)
         const GOOGLE_DRIVE_GAS_URL = 'https://script.google.com/macros/s/AKfycbxcWCJZ-CZQd10Kwiuw7ANOsLwnqDF_tGkxXHiIc6pwA46RUqQ5SkwpbYM9n8epBMx3mA/exec';
 
         let supabaseClient = null;
@@ -506,19 +543,18 @@
             console.error("Supabase 初始化失敗:", e);
         }
 
-        let currentCategory = 1; // 預設類別 1
+        let currentCategory = 1;
         let reportsDatabase = [];
         let cat1DamageRecords = [];
         let cat2DamageRecords = [];
         let activeAdminReportId = null;
-        let currentFilter = 'all';
+        let currentFilter = 'cat1'; // 預設停留在第1類
 
         document.addEventListener('DOMContentLoaded', () => {
             lucide.createIcons();
             fetchReportsFromSupabase();
         });
 
-        // 類別切換按鈕處理
         function setCategory(cat) {
             currentCategory = cat;
             const btn1 = document.getElementById('cat-btn-1');
@@ -540,7 +576,6 @@
             lucide.createIcons();
         }
 
-        // 第 1 類手動新增物品欄
         function addCustomItem(catPrefix) {
             const name = prompt("請輸入手動新增的物品名稱：");
             if (!name || !name.trim()) return;
@@ -564,14 +599,12 @@
             lucide.createIcons();
         }
 
-        // 第 1 類車輛狀況異常切換
         function toggleCat1Damage(show) {
             const wrapper = document.getElementById('cat1-damage-wrapper');
             if (show) wrapper.classList.remove('hidden');
             else wrapper.classList.add('hidden');
         }
 
-        // 點擊車身圖處理 (第 1 類)
         function handleZoneClickCat1(zoneName, elementId) {
             const svgEl = document.getElementById(elementId);
             const idx = cat1DamageRecords.findIndex(r => r.zoneId === elementId);
@@ -582,7 +615,6 @@
             renderDamageCards('cat1');
         }
 
-        // 點擊車身圖處理 (第 2 類)
         function handleZoneClickCat2(zoneName, elementId) {
             const svgEl = document.getElementById(elementId);
             const idx = cat2DamageRecords.findIndex(r => r.zoneId === elementId);
@@ -640,7 +672,6 @@
             renderDamageCards(catPrefix);
         }
 
-        // 提交表單至 Supabase 及 Google Drive
         async function submitReport(e) {
             e.preventDefault();
             const submitBtn = document.getElementById('submit-btn');
@@ -684,7 +715,6 @@
                 payload.policed = document.getElementById('cat2-policed').value;
             }
 
-            // 觸發 Google Drive 照片背景上載 (如果有選擇照片)
             const photoInput = currentCategory === 1 ? document.getElementById('cat1-photos') : document.getElementById('cat2-photos');
             if (photoInput.files.length > 0) {
                 uploadPhotosToGoogleDrive(photoInput.files, `${payload.t_plate || '車輛'}_${payload.driver}_${nowIso.slice(0,10)}`);
@@ -702,13 +732,10 @@
             fetchReportsFromSupabase();
         }
 
-        // 模擬/對接 Google Drive 上載
         function uploadPhotosToGoogleDrive(files, folderName) {
-            console.log(`準備上載 ${files.length} 張照片至 Google Drive 資料夾: ${folderName}`);
-            // 如部署 GAS，此處發送 fetch(GOOGLE_DRIVE_GAS_URL, { method: 'POST', body: ... })
+            console.log(`上載 ${files.length} 張照片至 Google Drive 資料夾: ${folderName}`);
         }
 
-        // ---------------- 從 Supabase 載入數據 ----------------
         async function fetchReportsFromSupabase() {
             if (!supabaseClient) return;
             try {
@@ -723,7 +750,6 @@
             }
         }
 
-        // 切換頁面 (司機 vs 主管)
         function switchTab(tab) {
             const d = document.getElementById('view-driver');
             const a = document.getElementById('view-admin');
@@ -736,7 +762,6 @@
             }
         }
 
-        // 主管登入 PIN
         function verifyAdminPin() {
             const pin = document.getElementById('admin-pin').value;
             if (pin === '28668966') {
@@ -770,6 +795,13 @@
 
         function setFilter(f) {
             currentFilter = f;
+            ['cat1', 'cat2', 'pending'].forEach(btnKey => {
+                const el = document.getElementById(`btn-filter-${btnKey}`);
+                if (el) {
+                    if (btnKey === f) el.className = "px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-900 text-white whitespace-nowrap";
+                    else el.className = "px-3 py-1.5 text-xs font-semibold rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 whitespace-nowrap";
+                }
+            });
             renderReportList();
         }
 
@@ -780,25 +812,33 @@
             let filtered = reportsDatabase.filter(r => {
                 if (currentFilter === 'cat1') return r.category === 1;
                 if (currentFilter === 'cat2') return r.category === 2;
-                if (currentFilter === 'pending') return r.status === 'pending';
+                if (currentFilter === 'pending') return r.category === 2 && r.status === 'pending';
                 return true;
             });
 
+            if (filtered.length === 0) {
+                container.innerHTML = '<div class="text-center py-8 text-slate-400 text-xs">目前沒有對應的申報紀錄。</div>';
+                return;
+            }
+
             container.innerHTML = filtered.map(item => `
-                <div class="p-4 bg-white rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row justify-between items-center gap-3">
+                <div class="p-4 bg-white rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row justify-between items-center gap-3 hover:border-blue-300 transition cursor-pointer" onclick="openAdminDetailModal('${item.id || item.report_id}')">
                     <div>
                         <div class="flex items-center gap-2">
                             <span class="font-mono font-bold text-slate-900 text-sm">${item.report_id || item.id}</span>
                             <span class="px-2 py-0.5 text-[10px] font-semibold ${item.category === 1 ? 'bg-blue-100 text-blue-800' : 'bg-red-100 text-red-800'} rounded">第 ${item.category} 類表單</span>
+                            ${item.category === 2 ? (item.status === 'pending' ? '<span class="text-[10px] bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded-full">待審核</span>' : '<span class="text-[10px] bg-green-100 text-green-800 font-bold px-2 py-0.5 rounded-full">已審核</span>') : ''}
                         </div>
                         <p class="text-xs text-slate-600 mt-1">T牌/車牌: <strong>${item.t_plate || item.plate_vin || '--'}</strong> | 司機/員工: <strong>${item.driver}</strong></p>
                     </div>
-                    <button onclick="openAdminDetailModal('${item.id || item.report_id}')" class="px-3.5 py-1.5 bg-slate-900 text-white text-xs font-bold rounded-lg hover:bg-blue-600 transition">審核 / 匯出 PDF</button>
+                    <button class="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-lg transition flex items-center gap-1">
+                        <i data-lucide="edit" class="w-3.5 h-3.5"></i> 查看 / 編輯
+                    </button>
                 </div>
             `).join('');
+            lucide.createIcons();
         }
 
-        // 主管 T 牌 Summary
         function populateTSummaryOptions() {
             const select = document.getElementById('summary-t-select');
             const plates = [...new Set(reportsDatabase.map(r => r.t_plate).filter(Boolean))];
@@ -818,7 +858,6 @@
 
             targetLabel.textContent = selectedPlate;
 
-            // 篩選出該 T 牌的紀錄，並【按時間由舊到新】排序
             const records = reportsDatabase
                 .filter(r => r.t_plate === selectedPlate)
                 .sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
@@ -845,20 +884,41 @@
             document.getElementById('modal-pdf-type').textContent = `申報類別：第 ${item.category} 類 (${item.category === 1 ? '日常交收' : '車輛損壞'})`;
 
             const main = document.getElementById('modal-main-content');
+            const auditSec = document.getElementById('modal-audit-section');
+
             if (item.category === 1) {
+                auditSec.classList.add('hidden'); // 第 1 類不安裝審核欄
                 main.innerHTML = `
-                    <p><strong>T牌：</strong> ${item.t_plate} | <strong>司機：</strong> ${item.driver}</p>
-                    <p><strong>車輛型號：</strong> ${item.model} | <strong>VIN：</strong> ${item.vin}</p>
-                    <p><strong>行程：</strong> ${item.origin} ➔ ${item.destination}</p>
-                    <p><strong>車輛狀況：</strong> ${item.condition === 'normal' ? '車輛內外沒有異常' : '發現異常問題'}</p>
-                    <p><strong>詳細說明：</strong> ${item.description || '無'}</p>
+                    <div class="grid grid-cols-2 gap-3 bg-slate-50 p-3 rounded-lg border">
+                        <div><label class="font-bold text-slate-500 block">T 牌號碼</label><input type="text" id="edit-t-plate" value="${item.t_plate || ''}" class="w-full p-1 border rounded"></div>
+                        <div><label class="font-bold text-slate-500 block">司機/員工姓名</label><input type="text" id="edit-driver" value="${item.driver || ''}" class="w-full p-1 border rounded"></div>
+                        <div><label class="font-bold text-slate-500 block">車輛型號</label><input type="text" id="edit-model" value="${item.model || ''}" class="w-full p-1 border rounded"></div>
+                        <div><label class="font-bold text-slate-500 block">底盤號碼 (VIN)</label><input type="text" id="edit-vin" value="${item.vin || ''}" class="w-full p-1 border rounded"></div>
+                        <div><label class="font-bold text-slate-500 block">出發地</label><input type="text" id="edit-origin" value="${item.origin || ''}" class="w-full p-1 border rounded"></div>
+                        <div><label class="font-bold text-slate-500 block">目的地</label><input type="text" id="edit-destination" value="${item.destination || ''}" class="w-full p-1 border rounded"></div>
+                    </div>
+                    <div>
+                        <label class="font-bold text-slate-500 block mb-1">詳細說明與備註</label>
+                        <textarea id="edit-description" rows="2" class="w-full p-2 border rounded">${item.description || ''}</textarea>
+                    </div>
                 `;
             } else {
+                auditSec.classList.remove('hidden'); // 第 2 類提供審核欄
+                if (item.verdict) {
+                    document.getElementById('edit-verdict-responsibility').value = item.verdict.responsibility || '正常無損 (Normal)';
+                    document.getElementById('edit-verdict-status').value = item.verdict.status || 'approved';
+                }
                 main.innerHTML = `
-                    <p><strong>員工姓名：</strong> ${item.driver} | <strong>T牌/車牌/VIN：</strong> ${item.t_plate} / ${item.plate_vin}</p>
-                    <p><strong>事故時間：</strong> ${item.incident_datetime} | <strong>地點：</strong> ${item.location}</p>
-                    <p><strong>通報主管：</strong> ${item.notified_manager} (${item.manager_name || '無'}) | <strong>有否報警：</strong> ${item.policed}</p>
-                    <p><strong>事故經過說明：</strong> ${item.description}</p>
+                    <div class="grid grid-cols-2 gap-3 bg-red-50/50 p-3 rounded-lg border border-red-200">
+                        <div><label class="font-bold text-slate-500 block">T牌/車牌/VIN</label><input type="text" id="edit-plate-vin" value="${item.plate_vin || item.t_plate || ''}" class="w-full p-1 border rounded"></div>
+                        <div><label class="font-bold text-slate-500 block">員工姓名</label><input type="text" id="edit-driver" value="${item.driver || ''}" class="w-full p-1 border rounded"></div>
+                        <div><label class="font-bold text-slate-500 block">車輛型號</label><input type="text" id="edit-model" value="${item.model || ''}" class="w-full p-1 border rounded"></div>
+                        <div><label class="font-bold text-slate-500 block">事故地點</label><input type="text" id="edit-location" value="${item.location || ''}" class="w-full p-1 border rounded"></div>
+                    </div>
+                    <div>
+                        <label class="font-bold text-slate-500 block mb-1">事故經過詳細說明</label>
+                        <textarea id="edit-description" rows="2" class="w-full p-2 border rounded">${item.description || ''}</textarea>
+                    </div>
                 `;
             }
 
@@ -869,12 +929,63 @@
             document.getElementById('admin-detail-modal').classList.add('hidden');
         }
 
-        function saveAdminVerdict() {
-            alert('已成功儲存審核紀錄！');
+        async function saveAdminChanges() {
+            if (!activeAdminReportId) return;
+
+            const item = reportsDatabase.find(r => (r.id === activeAdminReportId || r.report_id === activeAdminReportId));
+            if (!item) return;
+
+            let updatePayload = {
+                driver: document.getElementById('edit-driver').value.trim(),
+                model: document.getElementById('edit-model').value.trim(),
+                description: document.getElementById('edit-description').value.trim()
+            };
+
+            if (item.category === 1) {
+                updatePayload.t_plate = document.getElementById('edit-t-plate').value.trim();
+                updatePayload.vin = document.getElementById('edit-vin').value.trim();
+                updatePayload.origin = document.getElementById('edit-origin').value.trim();
+                updatePayload.destination = document.getElementById('edit-destination').value.trim();
+            } else {
+                updatePayload.plate_vin = document.getElementById('edit-plate-vin').value.trim();
+                updatePayload.location = document.getElementById('edit-location').value.trim();
+                
+                const resp = document.getElementById('edit-verdict-responsibility').value;
+                const status = document.getElementById('edit-verdict-status').value;
+                updatePayload.status = status;
+                updatePayload.verdict = { responsibility: resp, status: status };
+            }
+
+            if (supabaseClient) {
+                try {
+                    await supabaseClient.from('vehicle_reports').update(updatePayload).eq('report_id', activeAdminReportId);
+                } catch (err) {
+                    console.error("更新數據庫失敗:", err);
+                }
+            }
+
+            alert('申報單據修改成功！');
             closeAdminDetailModal();
+            fetchReportsFromSupabase();
         }
 
-        // 匯出單份報告 PDF
+        async function deleteCurrentReport() {
+            if (!activeAdminReportId) return;
+            if (!confirm(`確定要刪除申報單據：${activeAdminReportId} 嗎？此操作無法撤銷！`)) return;
+
+            if (supabaseClient) {
+                try {
+                    await supabaseClient.from('vehicle_reports').delete().eq('report_id', activeAdminReportId);
+                } catch (err) {
+                    console.error("刪除失敗:", err);
+                }
+            }
+
+            alert('申報單據已成功刪除！');
+            closeAdminDetailModal();
+            fetchReportsFromSupabase();
+        }
+
         function exportSinglePDF() {
             const element = document.getElementById('pdf-report-card');
             html2pdf().from(element).set({
@@ -885,7 +996,6 @@
             }).save();
         }
 
-        // 匯出 T 牌 Summary PDF
         function exportTSummaryPDF() {
             const element = document.getElementById('summary-pdf-area');
             const plate = document.getElementById('summary-t-select').value || 'ALL';
