@@ -223,7 +223,7 @@
                                 <i data-lucide="camera" class="w-4 h-4 text-indigo-600"></i> 第四部分：拍照存證
                             </h3>
                             <input type="file" id="cat1-photos" multiple accept="image/*" class="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
-                            <p class="text-[11px] text-slate-400">系統將自動儲存照片到雲端。</p>
+                            <p class="text-[11px] text-slate-400">系統將自動儲存照片到雲端 Drive。</p>
                         </div>
                     </div>
 
@@ -297,7 +297,7 @@
                                 <i data-lucide="camera" class="w-4 h-4 text-red-600"></i> 第三部分：現場拍照存證
                             </h3>
                             <input type="file" id="cat2-photos" multiple accept="image/*" class="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-red-100 file:text-red-700 hover:file:bg-red-200">
-                            <p class="text-[11px] text-slate-400">系統將自動儲存照片到雲端。</p>
+                            <p class="text-[11px] text-slate-400">系統將自動儲存照片到雲端 Drive。</p>
                         </div>
 
                         <!-- 第四部分: 事故詳細說明與後續通知 -->
@@ -549,7 +549,7 @@
         let cat1DamageRecords = [];
         let cat2DamageRecords = [];
         let activeAdminReportId = null;
-        let currentFilter = 'cat1'; // 預設停留在第1類
+        let currentFilter = 'cat1';
 
         document.addEventListener('DOMContentLoaded', () => {
             lucide.createIcons();
@@ -676,7 +676,7 @@
         async function submitReport(e) {
             e.preventDefault();
 
-            // JS 動態表單欄位驗證 (避免 HTML5 hidden 欄位驗證衝突)
+            // JS 動態表單欄位驗證
             if (currentCategory === 1) {
                 const tPlate = document.getElementById('cat1-t-plate').value;
                 const driver = document.getElementById('cat1-driver').value.trim();
@@ -742,9 +742,12 @@
                 payload.policed = document.getElementById('cat2-policed').value;
             }
 
+            // 照片上傳至 Google Drive
             const photoInput = currentCategory === 1 ? document.getElementById('cat1-photos') : document.getElementById('cat2-photos');
             if (photoInput.files.length > 0) {
-                uploadPhotosToGoogleDrive(photoInput.files, `${payload.t_plate || '車輛'}_${payload.driver}_${nowIso.slice(0,10)}`);
+                submitBtn.textContent = '照片上傳中...';
+                const folderName = `${payload.t_plate || payload.plate_vin || '車輛'}_${payload.driver}_${nowIso.slice(0,10)}`;
+                await uploadPhotosToGoogleDrive(photoInput.files, folderName);
             }
 
             if (supabaseClient) {
@@ -759,8 +762,38 @@
             fetchReportsFromSupabase();
         }
 
-        function uploadPhotosToGoogleDrive(files, folderName) {
-            console.log(`上載 ${files.length} 張照片至 Google Drive 資料夾: ${folderName}`);
+        // 非同步批次將檔案轉為 Base64 並 POST 上傳到 Google Apps Script (Drive)
+        async function uploadPhotosToGoogleDrive(files, folderName) {
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                try {
+                    const base64Data = await readFileAsBase64(file);
+                    const bodyData = {
+                        folderName: folderName,
+                        filename: file.name,
+                        mimeType: file.type,
+                        file: base64Data
+                    };
+
+                    await fetch(GOOGLE_DRIVE_GAS_URL, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(bodyData)
+                    });
+                } catch (err) {
+                    console.error("相片上傳失敗:", file.name, err);
+                }
+            }
+        }
+
+        function readFileAsBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result.split(',')[1]);
+                reader.onerror = error => reject(error);
+                reader.readAsDataURL(file);
+            });
         }
 
         async function fetchReportsFromSupabase() {
