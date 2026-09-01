@@ -365,9 +365,15 @@
                 filtered = reportsDatabase.filter(r => r.status === 'pending');
             } else if (currentFilter === 'incident') {
                 filtered = reportsDatabase.filter(r => r.type && r.type.includes('損壞'));
-            } else if (currentFilter === 'missing') {
-                filtered = reportsDatabase.filter(r => r.missing_tools && r.missing_tools !== '無' && r.missing_tools.trim() !== '');
-            }
+} else if (currentFilter === 'missing') {
+    filtered = reportsDatabase.filter(r => {
+        if (!r.missing_tools) return false;
+        if (Array.isArray(r.missing_tools)) {
+            return r.missing_tools.length > 0 && !r.missing_tools.includes('無');
+        }
+        return typeof r.missing_tools === 'string' && r.missing_tools !== '無' && r.missing_tools.trim() !== '';
+    });
+}
 
             if (filtered.length === 0) {
                 container.innerHTML = `
