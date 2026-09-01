@@ -10,21 +10,12 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <!-- Supabase JS SDK CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- html2pdf.js (用於前端生成 PDF) -->
+    <!-- html2pdf.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
-        .car-zone {
-            transition: all 0.18s ease;
-            cursor: pointer;
-        }
-        .car-zone:hover {
-            fill: rgba(59, 130, 246, 0.3);
-        }
-        .car-zone.active-damage {
-            fill: rgba(239, 68, 68, 0.65);
-            stroke: #b91c1c;
-            stroke-width: 2.5px;
-        }
+        .car-zone { transition: all 0.18s ease; cursor: pointer; }
+        .car-zone:hover { fill: rgba(59, 130, 246, 0.3); }
+        .car-zone.active-damage { fill: rgba(239, 68, 68, 0.65); stroke: #b91c1c; stroke-width: 2.5px; }
         @media print {
             body * { visibility: hidden; }
             .print-section, .print-section * { visibility: visible; }
@@ -34,6 +25,15 @@
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col">
+
+    <!-- 用於無刷新跨網域上傳照片至 Google Drive 的隱藏 Iframe 與 Form -->
+    <iframe name="hidden_upload_iframe" id="hidden_upload_iframe" class="hidden"></iframe>
+    <form id="gas-upload-form" method="POST" target="hidden_upload_iframe" class="hidden">
+        <input type="hidden" name="folderName" id="gas-folderName">
+        <input type="hidden" name="filename" id="gas-filename">
+        <input type="hidden" name="mimeType" id="gas-mimeType">
+        <input type="hidden" name="file" id="gas-file">
+    </form>
 
     <!-- Navbar -->
     <header class="bg-slate-900 text-white shadow-md no-print">
@@ -55,7 +55,7 @@
     <!-- Main Container -->
     <main class="flex-grow max-w-7xl w-full mx-auto p-4 sm:p-6">
 
-        <!-- ==================== 員工申報端 (Employee View) ==================== -->
+        <!-- ==================== 員工申報端 ==================== -->
         <section id="view-driver" class="space-y-6">
             <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
                 <div class="border-b border-slate-100 pb-4 mb-6">
@@ -65,7 +65,7 @@
                     <p class="text-sm text-slate-500 mt-1">請選擇申報類別，並確實填寫相關資訊。</p>
                 </div>
 
-                <!-- 類別切換大按鈕 -->
+                <!-- 類別切換按鈕 -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                     <button type="button" onclick="setCategory(1)" id="cat-btn-1" class="p-4 rounded-xl border-2 border-blue-600 bg-blue-50 text-blue-900 font-bold flex items-center justify-center gap-3 shadow-sm transition">
                         <i data-lucide="clipboard-check" class="w-6 h-6 text-blue-600"></i>
@@ -79,9 +79,8 @@
 
                 <form id="report-form" onsubmit="submitReport(event)" class="space-y-6" novalidate>
                     
-                    <!-- ================= 第 1 類 表單內容 ================= -->
+                    <!-- 第 1 類 表單內容 -->
                     <div id="cat1-fields" class="space-y-6">
-                        <!-- 第一部分: 基本資訊 -->
                         <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-4">
                             <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2 border-b border-slate-200 pb-2">
                                 <i data-lucide="file-text" class="w-4 h-4 text-blue-600"></i> 第一部分：基本資訊
@@ -121,7 +120,7 @@
                             </div>
                         </div>
 
-                        <!-- 第二部分: 隨車物品 -->
+                        <!-- 隨車物品點檢 -->
                         <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-4">
                             <div class="flex items-center justify-between border-b border-slate-200 pb-2">
                                 <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
@@ -137,41 +136,29 @@
                                         <input type="checkbox" data-item-name="車匙" checked class="w-4 h-4 text-blue-600 rounded">
                                         <span>車匙</span>
                                     </label>
-                                    <div class="sm:col-span-3">
-                                        <input type="number" min="0" value="1" placeholder="數量" class="item-qty w-full px-2.5 py-1 border border-slate-300 rounded text-xs">
-                                    </div>
-                                    <div class="sm:col-span-5">
-                                        <input type="text" placeholder="備註 (例如: 主匙1條)" class="item-notes w-full px-2.5 py-1 border border-slate-300 rounded text-xs">
-                                    </div>
+                                    <div class="sm:col-span-3"><input type="number" min="0" value="1" placeholder="數量" class="item-qty w-full px-2.5 py-1 border border-slate-300 rounded text-xs"></div>
+                                    <div class="sm:col-span-5"><input type="text" placeholder="備註 (例如: 主匙1條)" class="item-notes w-full px-2.5 py-1 border border-slate-300 rounded text-xs"></div>
                                 </div>
                                 <div class="grid grid-cols-1 sm:grid-cols-12 gap-2 items-center bg-white p-2.5 rounded-lg border border-slate-200">
                                     <label class="sm:col-span-4 flex items-center gap-2 text-sm font-bold text-slate-700 cursor-pointer">
                                         <input type="checkbox" data-item-name="跟車工具" checked class="w-4 h-4 text-blue-600 rounded">
                                         <span>跟車工具</span>
                                     </label>
-                                    <div class="sm:col-span-3">
-                                        <input type="number" min="0" value="1" placeholder="數量" class="item-qty w-full px-2.5 py-1 border border-slate-300 rounded text-xs">
-                                    </div>
-                                    <div class="sm:col-span-5">
-                                        <input type="text" placeholder="備註 (例如: 工具包1袋)" class="item-notes w-full px-2.5 py-1 border border-slate-300 rounded text-xs">
-                                    </div>
+                                    <div class="sm:col-span-3"><input type="number" min="0" value="1" placeholder="數量" class="item-qty w-full px-2.5 py-1 border border-slate-300 rounded text-xs"></div>
+                                    <div class="sm:col-span-5"><input type="text" placeholder="備註 (例如: 工具包1袋)" class="item-notes w-full px-2.5 py-1 border border-slate-300 rounded text-xs"></div>
                                 </div>
                                 <div class="grid grid-cols-1 sm:grid-cols-12 gap-2 items-center bg-white p-2.5 rounded-lg border border-slate-200">
                                     <label class="sm:col-span-4 flex items-center gap-2 text-sm font-bold text-slate-700 cursor-pointer">
                                         <input type="checkbox" data-item-name="備用輪胎" checked class="w-4 h-4 text-blue-600 rounded">
                                         <span>備用輪胎</span>
                                     </label>
-                                    <div class="sm:col-span-3">
-                                        <input type="number" min="0" value="1" placeholder="數量" class="item-qty w-full px-2.5 py-1 border border-slate-300 rounded text-xs">
-                                    </div>
-                                    <div class="sm:col-span-5">
-                                        <input type="text" placeholder="備註 (例如: 位於車底)" class="item-notes w-full px-2.5 py-1 border border-slate-300 rounded text-xs">
-                                    </div>
+                                    <div class="sm:col-span-3"><input type="number" min="0" value="1" placeholder="數量" class="item-qty w-full px-2.5 py-1 border border-slate-300 rounded text-xs"></div>
+                                    <div class="sm:col-span-5"><input type="text" placeholder="備註 (例如: 位於車底)" class="item-notes w-full px-2.5 py-1 border border-slate-300 rounded text-xs"></div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- 第三部分: 車輛狀況 -->
+                        <!-- 車輛狀況 -->
                         <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-4">
                             <h3 class="text-sm font-bold text-slate-800 border-b border-slate-200 pb-2 flex items-center gap-2">
                                 <i data-lucide="shield-alert" class="w-4 h-4 text-amber-600"></i> 第三部分：車輛狀況點檢
@@ -188,7 +175,6 @@
                             </div>
 
                             <div id="cat1-damage-wrapper" class="hidden space-y-4 pt-2">
-                                <p class="text-xs text-slate-500">👉 請點擊下方車身部位，點擊後會即時在下方建立專屬情況描述卡片：</p>
                                 <div class="bg-white p-3 rounded-xl border border-slate-200 flex justify-center">
                                     <svg viewBox="0 0 200 380" class="w-44 h-auto select-none">
                                         <rect x="35" y="30" width="130" height="320" rx="38" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/>
@@ -217,58 +203,36 @@
                             </div>
                         </div>
 
-                        <!-- 第四部分: 拍照存證 -->
+                        <!-- 拍照存證 -->
                         <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
                             <h3 class="text-sm font-bold text-slate-800 border-b border-slate-200 pb-2 flex items-center gap-2">
                                 <i data-lucide="camera" class="w-4 h-4 text-indigo-600"></i> 第四部分：拍照存證
                             </h3>
                             <input type="file" id="cat1-photos" multiple accept="image/*" class="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
-                            <p class="text-[11px] text-slate-400">系統將自動儲存照片到雲端 Drive。</p>
                         </div>
                     </div>
 
-
-                    <!-- ================= 第 2 類 表單內容 ================= -->
+                    <!-- 第 2 類 表單內容 -->
                     <div id="cat2-fields" class="space-y-6 hidden">
-                        <!-- 第一部分: 事故基本資訊 -->
                         <div class="bg-red-50/50 p-4 rounded-xl border border-red-200 space-y-4">
                             <h3 class="text-sm font-bold text-red-900 border-b border-red-200 pb-2 flex items-center gap-2">
                                 <i data-lucide="file-text" class="w-4 h-4 text-red-600"></i> 第一部分：事故基本資訊
                             </h3>
                             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                                <div>
-                                    <label class="block text-xs font-semibold text-slate-600 mb-1">T牌號碼 (如適用)</label>
-                                    <input type="text" id="cat2-t-plate" placeholder="例如：T1234" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono focus:ring-2 focus:ring-red-400 outline-none">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-semibold text-slate-600 mb-1">員工姓名 *</label>
-                                    <input type="text" id="cat2-driver" placeholder="請輸入全名" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-red-400 outline-none">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-semibold text-slate-600 mb-1">車輛型號 *</label>
-                                    <input type="text" id="cat2-model" placeholder="例如：Toyota Hiace" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-red-400 outline-none">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-semibold text-slate-600 mb-1">車牌 / 底盤號碼 (VIN) *</label>
-                                    <input type="text" id="cat2-plate-vin" placeholder="例如：AB1234 / VIN..." class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono focus:ring-2 focus:ring-red-400 outline-none">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-semibold text-slate-600 mb-1">事故日期時間 *</label>
-                                    <input type="datetime-local" id="cat2-datetime" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-red-400 outline-none">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-semibold text-slate-600 mb-1">事故地點 *</label>
-                                    <input type="text" id="cat2-location" placeholder="例如：觀塘道與開源道交界" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-red-400 outline-none">
-                                </div>
+                                <div><label class="block text-xs font-semibold text-slate-600 mb-1">T牌號碼 (如適用)</label><input type="text" id="cat2-t-plate" placeholder="例如：T1234" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono focus:ring-2 focus:ring-red-400 outline-none"></div>
+                                <div><label class="block text-xs font-semibold text-slate-600 mb-1">員工姓名 *</label><input type="text" id="cat2-driver" placeholder="請輸入全名" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-red-400 outline-none"></div>
+                                <div><label class="block text-xs font-semibold text-slate-600 mb-1">車輛型號 *</label><input type="text" id="cat2-model" placeholder="例如：Toyota Hiace" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-red-400 outline-none"></div>
+                                <div><label class="block text-xs font-semibold text-slate-600 mb-1">車牌 / 底盤號碼 (VIN) *</label><input type="text" id="cat2-plate-vin" placeholder="例如：AB1234 / VIN..." class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono focus:ring-2 focus:ring-red-400 outline-none"></div>
+                                <div><label class="block text-xs font-semibold text-slate-600 mb-1">事故日期時間 *</label><input type="datetime-local" id="cat2-datetime" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-red-400 outline-none"></div>
+                                <div><label class="block text-xs font-semibold text-slate-600 mb-1">事故地點 *</label><input type="text" id="cat2-location" placeholder="例如：觀塘道與開源道交界" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-red-400 outline-none"></div>
                             </div>
                         </div>
 
-                        <!-- 第二部分: 受損部位點選 -->
+                        <!-- 受損部位 -->
                         <div class="bg-red-50/50 p-4 rounded-xl border border-red-200 space-y-4">
                             <h3 class="text-sm font-bold text-red-900 border-b border-red-200 pb-2 flex items-center gap-2">
                                 <i data-lucide="alert-circle" class="w-4 h-4 text-red-600"></i> 第二部分：受損部位點選與描述
                             </h3>
-                            <p class="text-xs text-slate-500">👉 請點擊下方車身受損部位，點擊後即時建立獨立情況描述卡片：</p>
                             <div class="bg-white p-3 rounded-xl border border-slate-200 flex justify-center">
                                 <svg viewBox="0 0 200 380" class="w-44 h-auto select-none">
                                     <rect x="35" y="30" width="130" height="320" rx="38" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/>
@@ -291,16 +255,15 @@
                             <div id="cat2-damage-cards" class="space-y-3"></div>
                         </div>
 
-                        <!-- 第三部分: 拍照存證 -->
+                        <!-- 拍照存證 -->
                         <div class="bg-red-50/50 p-4 rounded-xl border border-red-200 space-y-3">
                             <h3 class="text-sm font-bold text-red-900 border-b border-red-200 pb-2 flex items-center gap-2">
                                 <i data-lucide="camera" class="w-4 h-4 text-red-600"></i> 第三部分：現場拍照存證
                             </h3>
                             <input type="file" id="cat2-photos" multiple accept="image/*" class="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-red-100 file:text-red-700 hover:file:bg-red-200">
-                            <p class="text-[11px] text-slate-400">系統將自動儲存照片到雲端 Drive。</p>
                         </div>
 
-                        <!-- 第四部分: 事故詳細說明與後續通知 -->
+                        <!-- 事故說明 -->
                         <div class="bg-red-50/50 p-4 rounded-xl border border-red-200 space-y-4">
                             <h3 class="text-sm font-bold text-red-900 border-b border-red-200 pb-2 flex items-center gap-2">
                                 <i data-lucide="help-circle" class="w-4 h-4 text-red-600"></i> 第四部分：事故詳細說明與後續處置
@@ -309,14 +272,10 @@
                                 <label class="block text-xs font-semibold text-slate-600 mb-1">詳細說明與事故經過 *</label>
                                 <textarea id="cat2-desc" rows="3" placeholder="請詳細寫下事故發生的過程與現場狀況..." class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-red-400 outline-none"></textarea>
                             </div>
-
                             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1">
                                 <div>
                                     <label class="block text-xs font-semibold text-slate-600 mb-1">是否已通知主管？ *</label>
-                                    <select id="cat2-notified" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white">
-                                        <option value="是">是</option>
-                                        <option value="否">否</option>
-                                    </select>
+                                    <select id="cat2-notified" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white"><option value="是">是</option><option value="否">否</option></select>
                                 </div>
                                 <div>
                                     <label class="block text-xs font-semibold text-slate-600 mb-1">通報的主管姓名</label>
@@ -324,10 +283,7 @@
                                 </div>
                                 <div>
                                     <label class="block text-xs font-semibold text-slate-600 mb-1">有否報警？ *</label>
-                                    <select id="cat2-policed" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white">
-                                        <option value="否">否</option>
-                                        <option value="是">是 (請在底下說明補充報案編號)</option>
-                                    </select>
+                                    <select id="cat2-policed" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white"><option value="否">否</option><option value="是">是 (請在底下說明補充報案編號)</option></select>
                                 </div>
                             </div>
                         </div>
@@ -344,23 +300,16 @@
         </section>
 
 
-        <!-- ==================== 主管後台端 (Admin View) ==================== -->
+        <!-- ==================== 主管後台端 ==================== -->
         <section id="view-admin" class="space-y-6 hidden">
-            
-            <!-- 主管 PIN 碼登入牆 -->
             <div id="admin-login-box" class="max-w-md mx-auto bg-white p-6 rounded-2xl shadow-sm border border-slate-200 text-center space-y-4">
-                <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-xl flex items-center justify-center mx-auto">
-                    <i data-lucide="lock" class="w-6 h-6"></i>
-                </div>
+                <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-xl flex items-center justify-center mx-auto"><i data-lucide="lock" class="w-6 h-6"></i></div>
                 <h3 class="text-base font-bold text-slate-900">主管後台登入驗證</h3>
                 <input type="password" id="admin-pin" placeholder="請輸入主管 PIN 碼" class="w-full text-center tracking-widest text-lg font-mono px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-amber-500 outline-none">
                 <button onclick="verifyAdminPin()" class="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold rounded-xl transition">登入後台</button>
             </div>
 
-            <!-- 主管後台主面板 -->
             <div id="admin-dashboard" class="space-y-6 hidden">
-                
-                <!-- 後台導覽與 T 牌 Summary 頁籤功能 -->
                 <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
                     <div class="flex items-center gap-2">
                         <button onclick="setAdminTab('reports')" id="tab-btn-reports" class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-900 text-white">所有案件審核</button>
@@ -371,56 +320,36 @@
                     </button>
                 </div>
 
-                <!-- 視窗 1：所有案件審核列表 -->
                 <div id="admin-panel-reports" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-4">
                     <div class="flex items-center gap-2 overflow-x-auto pb-2">
                         <button onclick="setFilter('cat1')" id="btn-filter-cat1" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-900 text-white whitespace-nowrap">第1類：日常交收</button>
                         <button onclick="setFilter('cat2')" id="btn-filter-cat2" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 whitespace-nowrap">第2類：車輛損壞</button>
                         <button onclick="setFilter('pending')" id="btn-filter-pending" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 whitespace-nowrap">待審核 (僅第2類)</button>
                     </div>
-
                     <div id="admin-report-list" class="space-y-3"></div>
                 </div>
 
-                <!-- 視窗 2：T 牌行駛歷程 Summary -->
                 <div id="admin-panel-summary" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-6 hidden">
                     <div class="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-slate-100 pb-4">
                         <div>
-                            <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
-                                <i data-lucide="history" class="w-5 h-5 text-blue-600"></i> T 牌號碼行駛歷程彙整 (Summary)
-                            </h3>
-                            <p class="text-xs text-slate-500 mt-0.5">選取 T 牌後，系統將按時間（由舊到新）列出所有行駛與交收紀錄。</p>
+                            <h3 class="text-base font-bold text-slate-900 flex items-center gap-2"><i data-lucide="history" class="w-5 h-5 text-blue-600"></i> T 牌號碼行駛歷程彙整 (Summary)</h3>
                         </div>
                         <div class="flex items-center gap-2 w-full sm:w-auto">
-                            <select id="summary-t-select" onchange="renderTSummary()" class="px-3 py-2 border border-slate-300 rounded-xl text-xs font-bold font-mono bg-slate-50 focus:ring-2 focus:ring-blue-500 outline-none">
+                            <select id="summary-t-select" onchange="renderTSummary()" class="px-3 py-2 border border-slate-300 rounded-xl text-xs font-bold font-mono bg-slate-50 outline-none">
                                 <option value="">-- 請選擇 T 牌號碼 --</option>
                             </select>
-                            <button onclick="exportTSummaryPDF()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-xl shadow-sm transition flex items-center gap-1.5 whitespace-nowrap">
-                                <i data-lucide="file-down" class="w-4 h-4"></i> 匯出歷程 PDF
-                            </button>
+                            <button onclick="exportTSummaryPDF()" class="px-4 py-2 bg-blue-600 text-white text-xs font-semibold rounded-xl transition flex items-center gap-1.5 whitespace-nowrap"><i data-lucide="file-down" class="w-4 h-4"></i> 匯出歷程 PDF</button>
                         </div>
                     </div>
-
-                    <!-- PDF 匯出列印標籤區域 -->
                     <div id="summary-pdf-area" class="space-y-4">
                         <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 flex justify-between items-center">
-                            <div>
-                                <h4 class="font-bold text-sm text-slate-800">T 牌專屬行駛歷程報告</h4>
-                                <p class="text-xs text-slate-500">目標 T 牌：<span id="summary-target-plate" class="font-mono font-bold text-blue-600">未選取</span></p>
-                            </div>
-                            <span class="text-xs text-slate-400">排序：由舊至新 (Oldest to Newest)</span>
+                            <div><h4 class="font-bold text-sm text-slate-800">T 牌專屬行駛歷程報告</h4><p class="text-xs text-slate-500">目標 T 牌：<span id="summary-target-plate" class="font-mono font-bold text-blue-600">未選取</span></p></div>
                         </div>
-
                         <div class="overflow-x-auto">
                             <table class="w-full text-left text-xs border-collapse">
                                 <thead>
                                     <tr class="bg-slate-100 text-slate-700 border-b border-slate-200">
-                                        <th class="p-2.5">日期時間</th>
-                                        <th class="p-2.5">司機/員工姓名</th>
-                                        <th class="p-2.5">車輛型號</th>
-                                        <th class="p-2.5">底盤號碼 (VIN)</th>
-                                        <th class="p-2.5">出發地</th>
-                                        <th class="p-2.5">目的地</th>
+                                        <th class="p-2.5">日期時間</th><th class="p-2.5">司機/員工姓名</th><th class="p-2.5">車輛型號</th><th class="p-2.5">底盤號碼 (VIN)</th><th class="p-2.5">出發地</th><th class="p-2.5">目的地</th>
                                     </tr>
                                 </thead>
                                 <tbody id="summary-table-body" class="divide-y divide-slate-100">
@@ -430,29 +359,23 @@
                         </div>
                     </div>
                 </div>
-
             </div>
         </section>
 
     </main>
 
-    <!-- Footer -->
     <footer class="bg-slate-900 text-slate-400 text-xs text-center py-4 mt-auto no-print border-t border-slate-800">
         2026 - New Tech Motor Engineering Limited
     </footer>
 
-
-    <!-- ==================== 詳情 / 編輯與刪除 Modal ==================== -->
+    <!-- Modal -->
     <div id="admin-detail-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 space-y-6">
             <div class="flex items-center justify-between border-b border-slate-100 pb-4 no-print">
-                <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
-                    <i data-lucide="file-text" class="w-5 h-5 text-blue-600"></i> 申報單據詳情與管理
-                </h3>
+                <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2"><i data-lucide="file-text" class="w-5 h-5 text-blue-600"></i> 申報單據詳情與管理</h3>
                 <button onclick="closeAdminDetailModal()" class="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg"><i data-lucide="x" class="w-5 h-5"></i></button>
             </div>
 
-            <!-- 可編輯內容區域 -->
             <div id="pdf-report-card" class="space-y-4 text-xs p-2">
                 <div class="border-b-2 border-slate-900 pb-2 flex justify-between items-end">
                     <div>
@@ -467,11 +390,8 @@
 
                 <div id="modal-main-content" class="space-y-4"></div>
 
-                <!-- 審核區域 (僅在第 2 類顯示) -->
                 <div id="modal-audit-section" class="border-t border-slate-200 pt-4 space-y-3 hidden">
-                    <h4 class="font-bold text-slate-900 text-xs flex items-center gap-1.5">
-                        <i data-lucide="check-circle-2" class="w-4 h-4 text-green-600"></i> 主管審核與責任判定 (僅第 2 類)
-                    </h4>
+                    <h4 class="font-bold text-slate-900 text-xs flex items-center gap-1.5"><i data-lucide="check-circle-2" class="w-4 h-4 text-green-600"></i> 主管審核與責任判定 (僅第 2 類)</h4>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
                             <label class="block text-[11px] font-semibold text-slate-500 mb-1">責任歸屬</label>
@@ -493,47 +413,30 @@
                     </div>
                 </div>
 
-                <!-- 簽署欄 -->
                 <div class="border-t border-slate-300 pt-6 mt-6 grid grid-cols-2 gap-8">
-                    <div class="space-y-8">
-                        <div class="border-b border-slate-400 h-10"></div>
-                        <p class="text-[11px] font-bold text-slate-700 text-center">當事員工 / 司機簽署</p>
-                    </div>
-                    <div class="space-y-8">
-                        <div class="border-b border-slate-400 h-10"></div>
-                        <p class="text-[11px] font-bold text-slate-700 text-center">主管審核簽署 confirm</p>
-                    </div>
+                    <div class="space-y-8"><div class="border-b border-slate-400 h-10"></div><p class="text-[11px] font-bold text-slate-700 text-center">當事員工 / 司機簽署</p></div>
+                    <div class="space-y-8"><div class="border-b border-slate-400 h-10"></div><p class="text-[11px] font-bold text-slate-700 text-center">主管審核簽署 confirm</p></div>
                 </div>
             </div>
 
-            <!-- 功能控制按鈕 -->
             <div class="flex items-center justify-between pt-4 border-t border-slate-100 no-print">
                 <div class="flex items-center gap-2">
-                    <button onclick="deleteCurrentReport()" class="px-3.5 py-2 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-semibold rounded-xl border border-red-200 transition flex items-center gap-1.5">
-                        <i data-lucide="trash-2" class="w-4 h-4"></i> 刪除申報單
-                    </button>
-                    <button onclick="exportSinglePDF()" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold rounded-xl transition flex items-center gap-1.5">
-                        <i data-lucide="file-down" class="w-4 h-4"></i> 匯出 PDF
-                    </button>
+                    <button onclick="deleteCurrentReport()" class="px-3.5 py-2 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-semibold rounded-xl border border-red-200 transition flex items-center gap-1.5"><i data-lucide="trash-2" class="w-4 h-4"></i> 刪除申報單</button>
+                    <button onclick="exportSinglePDF()" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold rounded-xl transition flex items-center gap-1.5"><i data-lucide="file-down" class="w-4 h-4"></i> 匯出 PDF</button>
                 </div>
                 <div class="flex items-center gap-2">
                     <button onclick="closeAdminDetailModal()" class="px-4 py-2 border border-slate-300 text-slate-700 text-xs font-semibold rounded-xl hover:bg-slate-50 transition">關閉</button>
-                    <button onclick="saveAdminChanges()" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-xl shadow-sm transition flex items-center gap-1.5">
-                        <i data-lucide="save" class="w-4 h-4"></i> 儲存修改內容
-                    </button>
+                    <button onclick="saveAdminChanges()" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-xl shadow-sm transition flex items-center gap-1.5"><i data-lucide="save" class="w-4 h-4"></i> 儲存修改內容</button>
                 </div>
             </div>
         </div>
     </div>
 
-
-    <!-- JavaScript 邏輯 -->
+    <!-- JavaScript -->
     <script>
-        // ==================== 1. Supabase & Google Drive 配置 ====================
         const SUPABASE_URL = 'https://celngxlithsslybhmtkk.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNlbG5neGxpdGhzc2x5YmhtdGtrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYzOTU4MDksImV4cCI6MjEwMTk3MTgwOX0.r5eb-PA6ay_BDkBp7MSp9ITmi-quTDf5SOiaKv8FABY';
-        
-        const GOOGLE_DRIVE_GAS_URL = 'https://script.google.com/macros/s/AKfycbyM9MM8HamysofzBo6muho-NPTDeQpwfgveqs3Zrg3fPqQYVBD8t-XiesUZkjv4ZhdX/exec';
+        const GOOGLE_DRIVE_GAS_URL = 'https://script.google.com/macros/s/AKfycbxcWCJZ-CZQd10Kwiuw7ANOsLwnqDF_tGkxXHiIc6pwA46RUqQ5SkwpbYM9n8epBMx3mA/exec';
 
         let supabaseClient = null;
         try {
@@ -588,9 +491,7 @@
                     <input type="checkbox" data-item-name="${name.trim()}" checked class="w-4 h-4 text-blue-600 rounded">
                     <span>${name.trim()}</span>
                 </label>
-                <div class="sm:col-span-3">
-                    <input type="number" min="0" value="1" placeholder="數量" class="item-qty w-full px-2.5 py-1 border border-slate-300 rounded text-xs">
-                </div>
+                <div class="sm:col-span-3"><input type="number" min="0" value="1" placeholder="數量" class="item-qty w-full px-2.5 py-1 border border-slate-300 rounded text-xs"></div>
                 <div class="sm:col-span-5 flex items-center gap-2">
                     <input type="text" placeholder="備註" class="item-notes w-full px-2.5 py-1 border border-slate-300 rounded text-xs">
                     <button type="button" onclick="this.parentElement.parentElement.remove()" class="text-slate-400 hover:text-red-500 p-1"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
@@ -676,7 +577,6 @@
         async function submitReport(e) {
             e.preventDefault();
 
-            // JS 動態表單欄位驗證
             if (currentCategory === 1) {
                 const tPlate = document.getElementById('cat1-t-plate').value;
                 const driver = document.getElementById('cat1-driver').value.trim();
@@ -742,12 +642,12 @@
                 payload.policed = document.getElementById('cat2-policed').value;
             }
 
-            // 照片上傳至 Google Drive
+            // 使用 Form 隱藏表單提交相片到 Google Drive
             const photoInput = currentCategory === 1 ? document.getElementById('cat1-photos') : document.getElementById('cat2-photos');
             if (photoInput.files.length > 0) {
-                submitBtn.textContent = '照片上傳中...';
+                submitBtn.textContent = '相片上傳至 Drive 中...';
                 const folderName = `${payload.t_plate || payload.plate_vin || '車輛'}_${payload.driver}_${nowIso.slice(0,10)}`;
-                await uploadPhotosToGoogleDrive(photoInput.files, folderName);
+                await uploadPhotosViaForm(photoInput.files, folderName);
             }
 
             if (supabaseClient) {
@@ -762,27 +662,25 @@
             fetchReportsFromSupabase();
         }
 
-        // 非同步批次將檔案轉為 Base64 並 POST 上傳到 Google Apps Script (Drive)
-        async function uploadPhotosToGoogleDrive(files, folderName) {
+        // 使用隱藏 Form 提交以突破 CORS 限制
+        async function uploadPhotosViaForm(files, folderName) {
+            const form = document.getElementById('gas-upload-form');
+            form.action = GOOGLE_DRIVE_GAS_URL;
+
             for (let i = 0; i < files.length; i++) {
                 const file = files[i];
                 try {
                     const base64Data = await readFileAsBase64(file);
-                    const bodyData = {
-                        folderName: folderName,
-                        filename: file.name,
-                        mimeType: file.type,
-                        file: base64Data
-                    };
+                    document.getElementById('gas-folderName').value = folderName;
+                    document.getElementById('gas-filename').value = file.name;
+                    document.getElementById('gas-mimeType').value = file.type;
+                    document.getElementById('gas-file').value = base64Data;
 
-                    await fetch(GOOGLE_DRIVE_GAS_URL, {
-                        method: 'POST',
-                        mode: 'no-cors',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(bodyData)
-                    });
+                    form.submit();
+                    // 等待半秒確保 POST 請求已由瀏覽器發出
+                    await new Promise(r => setTimeout(r, 600));
                 } catch (err) {
-                    console.error("相片上傳失敗:", file.name, err);
+                    console.error("相片處理失敗:", file.name, err);
                 }
             }
         }
@@ -935,7 +833,7 @@
         }
 
         function openAdminDetailModal(id) {
-            const item = reportsDatabase.find(r => (r.id === id || r.report_id === id));
+            const item = reportsDatabase.find(r => (String(r.id) === String(id) || String(r.report_id) === String(id)));
             if (!item) return;
             activeAdminReportId = id;
 
@@ -992,7 +890,7 @@
         async function saveAdminChanges() {
             if (!activeAdminReportId) return;
 
-            const item = reportsDatabase.find(r => (r.id === activeAdminReportId || r.report_id === activeAdminReportId));
+            const item = reportsDatabase.find(r => (String(r.id) === String(activeAdminReportId) || String(r.report_id) === String(activeAdminReportId)));
             if (!item) return;
 
             let updatePayload = {
@@ -1018,9 +916,13 @@
 
             if (supabaseClient) {
                 try {
-                    await supabaseClient.from('vehicle_reports').update(updatePayload).eq('report_id', activeAdminReportId);
+                    if (item.report_id) {
+                        await supabaseClient.from('vehicle_reports').update(updatePayload).eq('report_id', item.report_id);
+                    } else if (item.id) {
+                        await supabaseClient.from('vehicle_reports').update(updatePayload).eq('id', item.id);
+                    }
                 } catch (err) {
-                    console.error("更新數據庫失敗:", err);
+                    console.error("更新失敗:", err);
                 }
             }
 
@@ -1029,15 +931,31 @@
             fetchReportsFromSupabase();
         }
 
+        // 徹底解決刪除功能：兼容 id 與 report_id 雙重對應
         async function deleteCurrentReport() {
             if (!activeAdminReportId) return;
             if (!confirm(`確定要刪除申報單據：${activeAdminReportId} 嗎？此操作無法撤銷！`)) return;
 
-            if (supabaseClient) {
+            const item = reportsDatabase.find(r => (String(r.id) === String(activeAdminReportId) || String(r.report_id) === String(activeAdminReportId)));
+
+            if (supabaseClient && item) {
                 try {
-                    await supabaseClient.from('vehicle_reports').delete().eq('report_id', activeAdminReportId);
+                    let err1 = null, err2 = null;
+                    if (item.report_id) {
+                        const { error } = await supabaseClient.from('vehicle_reports').delete().eq('report_id', item.report_id);
+                        err1 = error;
+                    }
+                    if (item.id) {
+                        const { error } = await supabaseClient.from('vehicle_reports').delete().eq('id', item.id);
+                        err2 = error;
+                    }
+
+                    if (err1 && err2) {
+                        alert("刪除失敗，請檢查權限: " + (err1.message || err2.message));
+                        return;
+                    }
                 } catch (err) {
-                    console.error("刪除失敗:", err);
+                    console.error("刪除時發生異常:", err);
                 }
             }
 
