@@ -77,7 +77,7 @@
                     </button>
                 </div>
 
-                <form id="report-form" onsubmit="submitReport(event)" class="space-y-6">
+                <form id="report-form" onsubmit="submitReport(event)" class="space-y-6" novalidate>
                     
                     <!-- ================= 第 1 類 表單內容 ================= -->
                     <div id="cat1-fields" class="space-y-6">
@@ -89,18 +89,18 @@
                             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                 <div>
                                     <label class="block text-xs font-semibold text-slate-600 mb-1">T牌號碼 *</label>
-                                    <select id="cat1-t-plate" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                                    <select id="cat1-t-plate" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono focus:ring-2 focus:ring-blue-500 outline-none bg-white">
                                         <option value="">-- 請選擇 T 牌 --</option>
                                         <option value="T15195">T15195</option>
                                         <option value="T11835">T11835</option>
                                         <option value="T10559">T10559</option>
                                         <option value="T13012">T13012</option>
-                                        <option value="T13012">T13013</option>
+                                        <option value="T13013">T13013</option>
                                     </select>
                                 </div>
                                 <div>
                                     <label class="block text-xs font-semibold text-slate-600 mb-1">司機/員工姓名 *</label>
-                                    <input type="text" id="cat1-driver" required placeholder="請輸入全名" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                                    <input type="text" id="cat1-driver" placeholder="請輸入全名" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
                                 </div>
                                 <div>
                                     <label class="block text-xs font-semibold text-slate-600 mb-1">車輛型號</label>
@@ -112,11 +112,11 @@
                                 </div>
                                 <div>
                                     <label class="block text-xs font-semibold text-slate-600 mb-1">出發地 *</label>
-                                    <input type="text" id="cat1-origin" required placeholder="例如：工場停車場" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                                    <input type="text" id="cat1-origin" placeholder="例如：工場停車場" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
                                 </div>
                                 <div>
                                     <label class="block text-xs font-semibold text-slate-600 mb-1">目的地 *</label>
-                                    <input type="text" id="cat1-destination" required placeholder="例如：客戶地址" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                                    <input type="text" id="cat1-destination" placeholder="例如：客戶地址" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
                                 </div>
                             </div>
                         </div>
@@ -242,23 +242,23 @@
                                 </div>
                                 <div>
                                     <label class="block text-xs font-semibold text-slate-600 mb-1">員工姓名 *</label>
-                                    <input type="text" id="cat2-driver" required placeholder="請輸入全名" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-red-400 outline-none">
+                                    <input type="text" id="cat2-driver" placeholder="請輸入全名" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-red-400 outline-none">
                                 </div>
                                 <div>
                                     <label class="block text-xs font-semibold text-slate-600 mb-1">車輛型號 *</label>
-                                    <input type="text" id="cat2-model" required placeholder="例如：Toyota Hiace" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-red-400 outline-none">
+                                    <input type="text" id="cat2-model" placeholder="例如：Toyota Hiace" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-red-400 outline-none">
                                 </div>
                                 <div>
                                     <label class="block text-xs font-semibold text-slate-600 mb-1">車牌 / 底盤號碼 (VIN) *</label>
-                                    <input type="text" id="cat2-plate-vin" required placeholder="例如：AB1234 / VIN..." class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono focus:ring-2 focus:ring-red-400 outline-none">
+                                    <input type="text" id="cat2-plate-vin" placeholder="例如：AB1234 / VIN..." class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono focus:ring-2 focus:ring-red-400 outline-none">
                                 </div>
                                 <div>
                                     <label class="block text-xs font-semibold text-slate-600 mb-1">事故日期時間 *</label>
-                                    <input type="datetime-local" id="cat2-datetime" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-red-400 outline-none">
+                                    <input type="datetime-local" id="cat2-datetime" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-red-400 outline-none">
                                 </div>
                                 <div>
                                     <label class="block text-xs font-semibold text-slate-600 mb-1">事故地點 *</label>
-                                    <input type="text" id="cat2-location" required placeholder="例如：觀塘道與開源道交界" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-red-400 outline-none">
+                                    <input type="text" id="cat2-location" placeholder="例如：觀塘道與開源道交界" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-red-400 outline-none">
                                 </div>
                             </div>
                         </div>
@@ -307,7 +307,7 @@
                             </h3>
                             <div>
                                 <label class="block text-xs font-semibold text-slate-600 mb-1">詳細說明與事故經過 *</label>
-                                <textarea id="cat2-desc" rows="3" required placeholder="請詳細寫下事故發生的過程與現場狀況..." class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-red-400 outline-none"></textarea>
+                                <textarea id="cat2-desc" rows="3" placeholder="請詳細寫下事故發生的過程與現場狀況..." class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-red-400 outline-none"></textarea>
                             </div>
 
                             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1">
@@ -675,6 +675,32 @@
 
         async function submitReport(e) {
             e.preventDefault();
+
+            // JS 動態表單欄位驗證 (避免 HTML5 hidden 欄位驗證衝突)
+            if (currentCategory === 1) {
+                const tPlate = document.getElementById('cat1-t-plate').value;
+                const driver = document.getElementById('cat1-driver').value.trim();
+                const origin = document.getElementById('cat1-origin').value.trim();
+                const destination = document.getElementById('cat1-destination').value.trim();
+                if (!tPlate) { alert('請選擇 T 牌號碼！'); return; }
+                if (!driver) { alert('請輸入司機/員工姓名！'); return; }
+                if (!origin) { alert('請輸入出發地！'); return; }
+                if (!destination) { alert('請輸入目的地！'); return; }
+            } else {
+                const driver = document.getElementById('cat2-driver').value.trim();
+                const model = document.getElementById('cat2-model').value.trim();
+                const plateVin = document.getElementById('cat2-plate-vin').value.trim();
+                const dt = document.getElementById('cat2-datetime').value;
+                const loc = document.getElementById('cat2-location').value.trim();
+                const desc = document.getElementById('cat2-desc').value.trim();
+                if (!driver) { alert('請輸入員工姓名！'); return; }
+                if (!model) { alert('請輸入車輛型號！'); return; }
+                if (!plateVin) { alert('請輸入車牌/底盤號碼 (VIN)！'); return; }
+                if (!dt) { alert('請選擇事故日期時間！'); return; }
+                if (!loc) { alert('請輸入事故地點！'); return; }
+                if (!desc) { alert('請填寫事故詳細說明與經過！'); return; }
+            }
+
             const submitBtn = document.getElementById('submit-btn');
             submitBtn.disabled = true;
             submitBtn.textContent = '提交中...';
@@ -692,7 +718,7 @@
                     if (cb) itemsList.push({ name: cb.getAttribute('data-item-name'), checked: cb.checked, qty, notes });
                 });
 
-                payload.t_plate = document.getElementById('cat1-t-plate').value.trim().toUpperCase();
+                payload.t_plate = document.getElementById('cat1-t-plate').value;
                 payload.driver = document.getElementById('cat1-driver').value.trim();
                 payload.model = document.getElementById('cat1-model').value.trim();
                 payload.vin = document.getElementById('cat1-vin').value.trim();
@@ -888,7 +914,7 @@
             const auditSec = document.getElementById('modal-audit-section');
 
             if (item.category === 1) {
-                auditSec.classList.add('hidden'); // 第 1 類不安裝審核欄
+                auditSec.classList.add('hidden');
                 main.innerHTML = `
                     <div class="grid grid-cols-2 gap-3 bg-slate-50 p-3 rounded-lg border">
                         <div><label class="font-bold text-slate-500 block">T 牌號碼</label><input type="text" id="edit-t-plate" value="${item.t_plate || ''}" class="w-full p-1 border rounded"></div>
@@ -904,7 +930,7 @@
                     </div>
                 `;
             } else {
-                auditSec.classList.remove('hidden'); // 第 2 類提供審核欄
+                auditSec.classList.remove('hidden');
                 if (item.verdict) {
                     document.getElementById('edit-verdict-responsibility').value = item.verdict.responsibility || '正常無損 (Normal)';
                     document.getElementById('edit-verdict-status').value = item.verdict.status || 'approved';
@@ -1010,4 +1036,3 @@
     </script>
 </body>
 </html>
-```eof
