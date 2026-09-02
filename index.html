@@ -100,8 +100,14 @@
                                     <label class="block text-xs font-semibold text-slate-600 mb-1">司機/員工姓名 *</label>
                                     <input type="text" id="cat1-driver" placeholder="請輸入全名" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
                                 </div>
+
+                                <!-- 新增：客人 / 部門 -->
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-600 mb-1">客人 / 部門</label>
+                                    <input type="text" id="cat1-customer-dept" placeholder="例如：工程部 / 客戶工程公司" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                                </div>
                                 
-                                <!-- 品牌與型號拆分 -->
+                                <!-- 品牌 -->
                                 <div>
                                     <label class="block text-xs font-semibold text-slate-600 mb-1">品牌 *</label>
                                     <select id="cat1-brand-select" onchange="toggleBrandCustom('cat1')" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white">
@@ -121,21 +127,21 @@
                                     </select>
                                     <input type="text" id="cat1-brand-custom" placeholder="請輸入品牌名稱" class="w-full mt-2 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none hidden">
                                 </div>
+
+                                <!-- 型號與車牌 (二選一必填) -->
                                 <div>
-                                    <label class="block text-xs font-semibold text-slate-600 mb-1">型號</label>
+                                    <label class="block text-xs font-semibold text-slate-600 mb-1">型號 (型號或車牌二選一必填)</label>
                                     <input type="text" id="cat1-model" placeholder="例如：Hiace / Canter" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
                                 </div>
-
-                                <!-- 車牌與 VIN 拆分 -->
                                 <div>
-                                    <label class="block text-xs font-semibold text-slate-600 mb-1">車牌</label>
+                                    <label class="block text-xs font-semibold text-slate-600 mb-1">車牌 (型號或車牌二選一必填)</label>
                                     <input type="text" id="cat1-plate" placeholder="例如：AB1234" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono focus:ring-2 focus:ring-blue-500 outline-none">
                                 </div>
+
                                 <div>
                                     <label class="block text-xs font-semibold text-slate-600 mb-1">底盤號碼 (VIN)</label>
                                     <input type="text" id="cat1-vin" placeholder="請輸入 VIN 號碼" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono focus:ring-2 focus:ring-blue-500 outline-none">
                                 </div>
-
                                 <div>
                                     <label class="block text-xs font-semibold text-slate-600 mb-1">出發地 *</label>
                                     <input type="text" id="cat1-origin" placeholder="例如：工場停車場" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
@@ -230,20 +236,28 @@
                             </div>
                         </div>
 
-                        <!-- 拍照存證 (拍照/相簿選取 + 剪貼簿貼上) -->
+                        <!-- 拍照存證 -->
                         <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
                             <h3 class="text-sm font-bold text-slate-800 border-b border-slate-200 pb-2 flex items-center gap-2">
                                 <i data-lucide="camera" class="w-4 h-4 text-indigo-600"></i> 第四部分：拍照存證
                             </h3>
                             <div>
-                                <label class="block text-xs font-semibold text-slate-600 mb-1">上傳照片 (手機可選即時拍照或開啟相簿)：</label>
-                                <input type="file" id="cat1-photos" multiple accept="image/*" onchange="handleFileSelect('cat1')" class="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                                <label class="block text-xs font-semibold text-slate-600 mb-2">請選擇照片上傳方式：</label>
+                                <div class="flex flex-wrap gap-2">
+                                    <label class="px-3.5 py-2 bg-blue-600 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 cursor-pointer hover:bg-blue-700 transition shadow-sm">
+                                        <i data-lucide="camera" class="w-4 h-4"></i> 即時拍照
+                                        <input type="file" accept="image/*" capture="environment" onchange="handleFileSelectDirect(this, 'cat1')" class="hidden">
+                                    </label>
+                                    <label class="px-3.5 py-2 bg-slate-100 text-slate-700 rounded-lg text-xs font-semibold flex items-center gap-1.5 cursor-pointer hover:bg-slate-200 transition border border-slate-300">
+                                        <i data-lucide="image" class="w-4 h-4"></i> 開啟相簿選取
+                                        <input type="file" multiple accept="image/*" onchange="handleFileSelectDirect(this, 'cat1')" class="hidden">
+                                    </label>
+                                </div>
                             </div>
                             
                             <div id="cat1-paste-zone" tabindex="0" onclick="focusPasteZone('cat1')" class="paste-zone bg-white rounded-xl p-4 text-center cursor-pointer outline-none focus:ring-2 focus:ring-blue-500">
                                 <i data-lucide="clipboard" class="w-6 h-6 text-slate-400 mx-auto mb-1"></i>
-                                <p class="text-xs text-slate-600 font-semibold">點擊此處並按下 <kbd class="px-1.5 py-0.5 bg-slate-100 border border-slate-300 rounded font-mono text-[10px]">Ctrl + V</kbd> 直接貼上相片</p>
-                                <p class="text-[10px] text-slate-400 mt-0.5">或直接將圖片拖曳至此區域</p>
+                                <p class="text-xs text-slate-600 font-semibold">電腦版：點擊此處按 <kbd class="px-1.5 py-0.5 bg-slate-100 border border-slate-300 rounded font-mono text-[10px]">Ctrl + V</kbd> 貼上圖片 / 拖曳圖片</p>
                             </div>
 
                             <div id="cat1-photo-previews" class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2"></div>
@@ -299,14 +313,22 @@
                                 <i data-lucide="camera" class="w-4 h-4 text-red-600"></i> 第三部分：現場拍照存證
                             </h3>
                             <div>
-                                <label class="block text-xs font-semibold text-slate-600 mb-1">上傳照片 (手機可選即時拍照或開啟相簿)：</label>
-                                <input type="file" id="cat2-photos" multiple accept="image/*" onchange="handleFileSelect('cat2')" class="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-red-100 file:text-red-700 hover:file:bg-red-200">
+                                <label class="block text-xs font-semibold text-slate-600 mb-2">請選擇照片上傳方式：</label>
+                                <div class="flex flex-wrap gap-2">
+                                    <label class="px-3.5 py-2 bg-red-600 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 cursor-pointer hover:bg-red-700 transition shadow-sm">
+                                        <i data-lucide="camera" class="w-4 h-4"></i> 即時拍照
+                                        <input type="file" accept="image/*" capture="environment" onchange="handleFileSelectDirect(this, 'cat2')" class="hidden">
+                                    </label>
+                                    <label class="px-3.5 py-2 bg-white text-slate-700 rounded-lg text-xs font-semibold flex items-center gap-1.5 cursor-pointer hover:bg-slate-100 transition border border-slate-300">
+                                        <i data-lucide="image" class="w-4 h-4"></i> 開啟相簿選取
+                                        <input type="file" multiple accept="image/*" onchange="handleFileSelectDirect(this, 'cat2')" class="hidden">
+                                    </label>
+                                </div>
                             </div>
 
                             <div id="cat2-paste-zone" tabindex="0" onclick="focusPasteZone('cat2')" class="paste-zone bg-white rounded-xl p-4 text-center cursor-pointer outline-none focus:ring-2 focus:ring-red-400">
                                 <i data-lucide="clipboard" class="w-6 h-6 text-slate-400 mx-auto mb-1"></i>
-                                <p class="text-xs text-slate-600 font-semibold">點擊此處並按下 <kbd class="px-1.5 py-0.5 bg-slate-100 border border-slate-300 rounded font-mono text-[10px]">Ctrl + V</kbd> 直接貼上相片</p>
-                                <p class="text-[10px] text-slate-400 mt-0.5">或直接將圖片拖曳至此區域</p>
+                                <p class="text-xs text-slate-600 font-semibold">電腦版：點擊此處按 <kbd class="px-1.5 py-0.5 bg-slate-100 border border-slate-300 rounded font-mono text-[10px]">Ctrl + V</kbd> 貼上圖片 / 拖曳圖片</p>
                             </div>
 
                             <div id="cat2-photo-previews" class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2"></div>
@@ -360,8 +382,9 @@
 
             <div id="admin-dashboard" class="space-y-6 hidden">
                 <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <div class="flex items-center gap-2">
+                    <div class="flex items-center gap-2 flex-wrap">
                         <button onclick="setAdminTab('reports')" id="tab-btn-reports" class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-900 text-white">所有案件審核</button>
+                        <button onclick="setAdminTab('search')" id="tab-btn-search" class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200">車輛搜查 (Vehicle Search)</button>
                         <button onclick="setAdminTab('summary')" id="tab-btn-summary" class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200">T 牌行駛歷程 Summary</button>
                     </div>
                     <button onclick="fetchReportsFromSupabase()" class="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition flex items-center gap-1.5">
@@ -369,6 +392,7 @@
                     </button>
                 </div>
 
+                <!-- 案件審核面板 -->
                 <div id="admin-panel-reports" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-4">
                     <div class="flex items-center gap-2 overflow-x-auto pb-2">
                         <button onclick="setFilter('cat1')" id="btn-filter-cat1" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-900 text-white whitespace-nowrap">第1類：日常交收</button>
@@ -378,6 +402,31 @@
                     <div id="admin-report-list" class="space-y-3"></div>
                 </div>
 
+                <!-- 新增：車輛搜查頁面板 -->
+                <div id="admin-panel-search" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-6 hidden">
+                    <div class="border-b border-slate-100 pb-4">
+                        <h3 class="text-base font-bold text-slate-900 flex items-center gap-2"><i data-lucide="search" class="w-5 h-5 text-blue-600"></i> 車輛歷史運送紀錄搜查</h3>
+                        <p class="text-xs text-slate-500 mt-1">輸入「車牌」或「底盤號碼 (VIN)」即可搜查所有相關運送紀錄。</p>
+                    </div>
+                    <div class="flex gap-2 max-w-md">
+                        <input type="text" id="vehicle-search-input" placeholder="請輸入車牌 或 VIN..." onkeyup="if(event.key==='Enter') searchVehicleRecords()" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs font-mono focus:ring-2 focus:ring-blue-500 outline-none">
+                        <button onclick="searchVehicleRecords()" class="px-4 py-2 bg-blue-600 text-white text-xs font-semibold rounded-xl hover:bg-blue-700 transition flex items-center gap-1 whitespace-nowrap"><i data-lucide="search" class="w-4 h-4"></i> 搜查</button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead>
+                                <tr class="bg-slate-100 text-slate-700 border-b border-slate-200">
+                                    <th class="p-2.5">日期</th><th class="p-2.5">T牌</th><th class="p-2.5">司機/員工</th><th class="p-2.5">車牌/VIN</th><th class="p-2.5">出發地</th><th class="p-2.5">目的地</th>
+                                </tr>
+                            </thead>
+                            <tbody id="vehicle-search-tbody" class="divide-y divide-slate-100">
+                                <tr><td colspan="6" class="p-4 text-center text-slate-400">請在上方輸入搜尋條件。</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Summary 面板 -->
                 <div id="admin-panel-summary" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-6 hidden">
                     <div class="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-slate-100 pb-4">
                         <div>
@@ -387,7 +436,8 @@
                             <select id="summary-t-select" onchange="renderTSummary()" class="px-3 py-2 border border-slate-300 rounded-xl text-xs font-bold font-mono bg-slate-50 outline-none">
                                 <option value="">-- 請選擇 T 牌號碼 --</option>
                             </select>
-                            <button onclick="exportTSummaryPDF()" class="px-4 py-2 bg-blue-600 text-white text-xs font-semibold rounded-xl transition flex items-center gap-1.5 whitespace-nowrap"><i data-lucide="file-down" class="w-4 h-4"></i> 匯出歷程 PDF</button>
+                            <button onclick="exportTSummaryCSV()" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-xl transition flex items-center gap-1.5 whitespace-nowrap"><i data-lucide="file-spreadsheet" class="w-4 h-4"></i> 匯出 CSV</button>
+                            <button onclick="exportTSummaryPDF()" class="px-3.5 py-2 bg-blue-600 text-white text-xs font-semibold rounded-xl transition flex items-center gap-1.5 whitespace-nowrap"><i data-lucide="file-down" class="w-4 h-4"></i> 匯出 PDF</button>
                         </div>
                     </div>
                     <div id="summary-pdf-area" class="space-y-4">
@@ -398,11 +448,11 @@
                             <table class="w-full text-left text-xs border-collapse">
                                 <thead>
                                     <tr class="bg-slate-100 text-slate-700 border-b border-slate-200">
-                                        <th class="p-2.5">日期時間</th><th class="p-2.5">司機/員工姓名</th><th class="p-2.5">車輛品牌/型號</th><th class="p-2.5">車牌/底盤號碼 (VIN)</th><th class="p-2.5">出發地</th><th class="p-2.5">目的地</th>
+                                        <th class="p-2.5">日期時間</th><th class="p-2.5">司機/員工姓名</th><th class="p-2.5">客人/部門</th><th class="p-2.5">車輛品牌/型號</th><th class="p-2.5">車牌/底盤號碼 (VIN)</th><th class="p-2.5">出發地</th><th class="p-2.5">目的地</th>
                                     </tr>
                                 </thead>
                                 <tbody id="summary-table-body" class="divide-y divide-slate-100">
-                                    <tr><td colspan="6" class="p-4 text-center text-slate-400">請從上方選擇 T 牌號碼以載入行駛歷程。</td></tr>
+                                    <tr><td colspan="7" class="p-4 text-center text-slate-400">請從上方選擇 T 牌號碼以載入行駛歷程。</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -416,6 +466,27 @@
     <footer class="bg-slate-900 text-slate-400 text-xs text-center py-4 mt-auto no-print border-t border-slate-800">
         2026 - New Tech Motor Engineering Limited
     </footer>
+
+    <!-- 新增：提交成功彈窗 (摘要複製) -->
+    <div id="success-copy-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 space-y-4 text-center">
+            <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto">
+                <i data-lucide="check-circle" class="w-7 h-7"></i>
+            </div>
+            <h3 class="text-lg font-bold text-slate-900">申報成功提交！</h3>
+            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-left text-xs font-mono space-y-1 text-slate-700" id="copy-summary-text">
+                <!-- 摘要訊息匯入處 -->
+            </div>
+            <div class="flex items-center gap-2 pt-2">
+                <button onclick="copySummaryText()" class="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition flex items-center justify-center gap-1.5">
+                    <i data-lucide="copy" class="w-4 h-4"></i> 複製摘要訊息
+                </button>
+                <button onclick="closeSuccessModal()" class="px-4 py-2.5 bg-slate-200 text-slate-700 text-xs font-bold rounded-xl hover:bg-slate-300 transition">
+                    關閉
+                </button>
+            </div>
+        </div>
+    </div>
 
     <!-- 正式文件 Modal -->
     <div id="admin-detail-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
@@ -509,6 +580,7 @@
         let cat2DamageRecords = [];
         let activeAdminReportId = null;
         let currentFilter = 'cat1';
+        let latestSummaryRawText = '';
 
         const photoStores = { cat1: [], cat2: [] };
 
@@ -517,8 +589,6 @@
             fetchReportsFromSupabase();
             setupPasteAndDragListeners('cat1');
             setupPasteAndDragListeners('cat2');
-            
-            // 預設第 1 類顯示 1 列空白新增項目
             addCustomItem('cat1', true);
         });
 
@@ -560,9 +630,11 @@
 
         function focusPasteZone(catPrefix) { document.getElementById(`${catPrefix}-paste-zone`).focus(); }
 
-        function handleFileSelect(catPrefix) {
-            const fileInput = document.getElementById(`${catPrefix}-photos`);
-            if (fileInput.files && fileInput.files.length > 0) addFilesToStore(catPrefix, Array.from(fileInput.files));
+        function handleFileSelectDirect(inputEl, catPrefix) {
+            if (inputEl.files && inputEl.files.length > 0) {
+                addFilesToStore(catPrefix, Array.from(inputEl.files));
+                inputEl.value = '';
+            }
         }
 
         function addFilesToStore(catPrefix, files) {
@@ -608,7 +680,6 @@
             lucide.createIcons();
         }
 
-        // 修改：無 Pop-up，直接在下方新增列
         function addCustomItem(catPrefix, isDefault = false) {
             const container = document.getElementById(`${catPrefix}-items-list`);
             const div = document.createElement('div');
@@ -705,6 +776,9 @@
             e.preventDefault();
 
             let brandVal = '';
+            let modelVal = '';
+            let plateVal = '';
+
             if (currentCategory === 1) {
                 const tPlate = document.getElementById('cat1-t-plate').value;
                 const driver = document.getElementById('cat1-driver').value.trim();
@@ -712,12 +786,22 @@
                 const bCustom = document.getElementById('cat1-brand-custom').value.trim();
                 brandVal = bSelect === 'other' ? bCustom : bSelect;
 
+                modelVal = document.getElementById('cat1-model').value.trim();
+                plateVal = document.getElementById('cat1-plate').value.trim();
+
                 const origin = document.getElementById('cat1-origin').value.trim();
                 const destination = document.getElementById('cat1-destination').value.trim();
                 
                 if (!tPlate) { alert('請選擇 T 牌號碼！'); return; }
                 if (!driver) { alert('請輸入司機/員工姓名！'); return; }
                 if (!brandVal) { alert('請選擇或輸入車輛品牌！'); return; }
+                
+                // 修改 1: 型號或車牌二選一必填驗證
+                if (!modelVal && !plateVal) {
+                    alert('「型號」與「車牌」請至少填寫其中一項！');
+                    return;
+                }
+
                 if (!origin) { alert('請輸入出發地！'); return; }
                 if (!destination) { alert('請輸入目的地！'); return; }
             } else {
@@ -755,9 +839,10 @@
 
                 payload.t_plate = document.getElementById('cat1-t-plate').value;
                 payload.driver = document.getElementById('cat1-driver').value.trim();
+                payload.customer_dept = document.getElementById('cat1-customer-dept').value.trim(); // 新增：客人/部門
                 payload.brand = brandVal;
-                payload.model = document.getElementById('cat1-model').value.trim();
-                payload.plate = document.getElementById('cat1-plate').value.trim();
+                payload.model = modelVal;
+                payload.plate = plateVal;
                 payload.vin = document.getElementById('cat1-vin').value.trim();
                 payload.origin = document.getElementById('cat1-origin').value.trim();
                 payload.destination = document.getElementById('cat1-destination').value.trim();
@@ -779,7 +864,6 @@
                 payload.policed = document.getElementById('cat2-policed').value;
             }
 
-            // Google Drive 資料夾名稱套用新格式：[日期]_[T牌號]_[司機]_[品牌]
             const photosToUpload = currentCategory === 1 ? photoStores.cat1 : photoStores.cat2;
             if (photosToUpload.length > 0) {
                 submitBtn.textContent = '相片上傳至 Drive 中...';
@@ -791,18 +875,36 @@
                 await uploadPhotosViaForm(photosToUpload, folderName);
             }
 
+            let newReportId = '';
             if (supabaseClient) {
                 const { data, error } = await supabaseClient.from('vehicle_reports').insert([payload]).select();
                 if (error) {
                     alert("寫入 Supabase 失敗: " + error.message);
-                } else {
-                    const newReportId = (data && data[0]) ? (data[0].report_id || data[0].id) : '';
-                    alert("申報表單提交成功！單號：" + newReportId);
+                } else if (data && data[0]) {
+                    newReportId = data[0].report_id || data[0].id;
                 }
             }
 
             submitBtn.disabled = false;
             submitBtn.textContent = '確認並提交雲端';
+
+            // 修改 3: 構建最新摘要訊息 (車牌 / VIN 智慧判定組合)
+            let pvParts = [];
+            if (payload.plate) pvParts.push(`車牌: ${payload.plate}`);
+            if (payload.vin) pvParts.push(`VIN: ${payload.vin}`);
+            if (payload.plate_vin) pvParts.push(`車牌/VIN: ${payload.plate_vin}`);
+            const pvStr = pvParts.length > 0 ? pvParts.join(' / ') : '無填寫車牌/VIN';
+
+            latestSummaryRawText = [
+                `單號：${newReportId || 'NTL-DR-XXXXX'}`,
+                `T牌：${payload.t_plate || '--'}`,
+                `車牌/VIN：${pvStr}`,
+                `品牌：${payload.brand || '--'}`,
+                `型號：${payload.model || '--'}`,
+                `路線：${payload.origin || payload.location || '--'} 至 ${payload.destination || '--'}`
+            ].join('\n');
+
+            showSuccessCopyModal(latestSummaryRawText);
             
             document.getElementById('report-form').reset();
             photoStores.cat1 = [];
@@ -811,6 +913,24 @@
             renderPhotoPreviews('cat2');
             
             fetchReportsFromSupabase();
+        }
+
+        function showSuccessCopyModal(summaryText) {
+            const container = document.getElementById('copy-summary-text');
+            container.innerText = summaryText;
+            document.getElementById('success-copy-modal').classList.remove('hidden');
+        }
+
+        function closeSuccessModal() {
+            document.getElementById('success-copy-modal').classList.add('hidden');
+        }
+
+        function copySummaryText() {
+            navigator.clipboard.writeText(latestSummaryRawText).then(() => {
+                alert('摘要訊息已成功複製到剪貼簿！');
+            }).catch(() => {
+                alert('複製失敗，請手動選取複製。');
+            });
         }
 
         async function uploadPhotosViaForm(files, folderName) {
@@ -894,22 +1014,61 @@
 
         function setAdminTab(tab) {
             const r = document.getElementById('admin-panel-reports');
-            const s = document.getElementById('admin-panel-summary');
+            const s = document.getElementById('admin-panel-search');
+            const sum = document.getElementById('admin-panel-summary');
+
             const btnR = document.getElementById('tab-btn-reports');
-            const btnS = document.getElementById('tab-btn-summary');
+            const btnS = document.getElementById('tab-btn-search');
+            const btnSum = document.getElementById('tab-btn-summary');
+
+            [r, s, sum].forEach(el => el.classList.add('hidden'));
+            [btnR, btnS, btnSum].forEach(el => el.className = "px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200");
 
             if (tab === 'reports') {
                 r.classList.remove('hidden');
-                s.classList.add('hidden');
                 btnR.className = "px-4 py-2 rounded-xl text-xs font-bold bg-slate-900 text-white";
-                btnS.className = "px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200";
-            } else {
-                r.classList.add('hidden');
+            } else if (tab === 'search') {
                 s.classList.remove('hidden');
                 btnS.className = "px-4 py-2 rounded-xl text-xs font-bold bg-slate-900 text-white";
-                btnR.className = "px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200";
+            } else {
+                sum.classList.remove('hidden');
+                btnSum.className = "px-4 py-2 rounded-xl text-xs font-bold bg-slate-900 text-white";
                 populateTSummaryOptions();
             }
+        }
+
+        // 修改 4: 車輛搜查頁比對與渲染
+        function searchVehicleRecords() {
+            const query = document.getElementById('vehicle-search-input').value.trim().toLowerCase();
+            const tbody = document.getElementById('vehicle-search-tbody');
+
+            if (!query) {
+                tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-slate-400">請輸入車牌 或 VIN 進行搜尋。</td></tr>';
+                return;
+            }
+
+            const results = reportsDatabase.filter(r => {
+                const plate = (r.plate || '').toLowerCase();
+                const vin = (r.vin || '').toLowerCase();
+                const plateVin = (r.plate_vin || '').toLowerCase();
+                return plate.includes(query) || vin.includes(query) || plateVin.includes(query);
+            });
+
+            if (results.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-slate-400">找不到相關車輛的運送紀錄。</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = results.map(r => `
+                <tr class="hover:bg-slate-50 border-b border-slate-100">
+                    <td class="p-2.5 font-mono text-slate-600">${new Date(r.created_at).toLocaleDateString()}</td>
+                    <td class="p-2.5 font-bold text-blue-600 font-mono">${r.t_plate || '--'}</td>
+                    <td class="p-2.5 font-bold text-slate-800">${r.driver || '--'}</td>
+                    <td class="p-2.5 font-mono">${r.plate || r.vin || r.plate_vin || '--'}</td>
+                    <td class="p-2.5">${r.origin || r.location || '--'}</td>
+                    <td class="p-2.5">${r.destination || '--'}</td>
+                </tr>
+            `).join('');
         }
 
         function setFilter(f) {
@@ -948,7 +1107,7 @@
                             <span class="px-2 py-0.5 text-[10px] font-semibold ${item.category === 1 ? 'bg-blue-100 text-blue-800' : 'bg-red-100 text-red-800'} rounded">第 ${item.category} 類表單</span>
                             ${item.category === 2 ? (item.status === 'pending' ? '<span class="text-[10px] bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded-full">待審核</span>' : '<span class="text-[10px] bg-green-100 text-green-800 font-bold px-2 py-0.5 rounded-full">已審核</span>') : ''}
                         </div>
-                        <p class="text-xs text-slate-600 mt-1">T牌/車牌: <strong>${item.t_plate || item.plate || item.plate_vin || '--'}</strong> | 司機/員工: <strong>${item.driver}</strong> | 品牌: <strong>${item.brand || '--'}</strong></p>
+                        <p class="text-xs text-slate-600 mt-1">T牌/車牌: <strong>${item.t_plate || item.plate || item.plate_vin || '--'}</strong> | 司機: <strong>${item.driver}</strong> | 客人/部門: <strong>${item.customer_dept || '--'}</strong></p>
                     </div>
                     <button class="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-lg transition flex items-center gap-1">
                         <i data-lucide="edit" class="w-3.5 h-3.5"></i> 查看 / 編輯
@@ -971,7 +1130,7 @@
 
             if (!selectedPlate) {
                 targetLabel.textContent = '未選取';
-                tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-slate-400">請從上方選擇 T 牌號碼以載入行駛歷程。</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" class="p-4 text-center text-slate-400">請從上方選擇 T 牌號碼以載入行駛歷程。</td></tr>';
                 return;
             }
 
@@ -985,6 +1144,7 @@
                 <tr class="hover:bg-slate-50">
                     <td class="p-2.5 font-mono text-slate-600">${new Date(r.created_at).toLocaleString()}</td>
                     <td class="p-2.5 font-bold text-slate-800">${r.driver || '--'}</td>
+                    <td class="p-2.5 text-slate-700">${r.customer_dept || '--'}</td>
                     <td class="p-2.5">${(r.brand ? r.brand + ' ' : '') + (r.model || '--')}</td>
                     <td class="p-2.5 font-mono">${r.plate || r.vin || r.plate_vin || '--'}</td>
                     <td class="p-2.5">${r.origin || r.location || '--'}</td>
@@ -993,7 +1153,48 @@
             `).join('');
         }
 
-        // 開啟 Modal 並渲染隨車物品清單與損壞資料
+        // 修改 5: Summary CSV 數據匯出功能
+        function exportTSummaryCSV() {
+            const selectedPlate = document.getElementById('summary-t-select').value;
+            if (!selectedPlate) {
+                alert('請先選擇 T 牌號碼！');
+                return;
+            }
+
+            const records = reportsDatabase
+                .filter(r => r.t_plate === selectedPlate)
+                .sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+
+            if (records.length === 0) {
+                alert('該 T 牌目前無歷史紀錄可匯出。');
+                return;
+            }
+
+            let csvContent = "\uFEFF"; // UTF-8 BOM
+            csvContent += "日期時間,司機/員工姓名,客人/部門,品牌,型號,車牌/VIN,出發地,目的地\n";
+
+            records.forEach(r => {
+                const dt = `"${new Date(r.created_at).toLocaleString()}"`;
+                const driver = `"${r.driver || ''}"`;
+                const dept = `"${r.customer_dept || ''}"`;
+                const brand = `"${r.brand || ''}"`;
+                const model = `"${r.model || ''}"`;
+                const pv = `"${r.plate || r.vin || r.plate_vin || ''}"`;
+                const origin = `"${r.origin || r.location || ''}"`;
+                const dest = `"${r.destination || ''}"`;
+
+                csvContent += `${dt},${driver},${dept},${brand},${model},${pv},${origin},${dest}\n`;
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.setAttribute("download", `新力機械_T牌歷程_${selectedPlate}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
         function openAdminDetailModal(id) {
             const item = reportsDatabase.find(r => (String(r.id) === String(id) || String(r.report_id) === String(id)));
             if (!item) return;
@@ -1006,7 +1207,6 @@
             const main = document.getElementById('modal-main-content');
             const auditSec = document.getElementById('modal-audit-section');
 
-            // 隨車物品清單 HTML 構建
             let itemsHtml = '';
             if (item.items_checklist && Array.isArray(item.items_checklist)) {
                 itemsHtml = `
@@ -1024,7 +1224,6 @@
                 `;
             }
 
-            // 損壞資料 HTML 構建
             let damageHtml = '';
             if (item.damage_items && Array.isArray(item.damage_items) && item.damage_items.length > 0) {
                 damageHtml = `
@@ -1051,6 +1250,7 @@
                     <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 bg-slate-50 p-3 rounded-lg border">
                         <div><label class="font-bold text-slate-500 block">T 牌號碼</label><input type="text" id="edit-t-plate" value="${item.t_plate || ''}" class="w-full p-1 border rounded"></div>
                         <div><label class="font-bold text-slate-500 block">司機/員工姓名</label><input type="text" id="edit-driver" value="${item.driver || ''}" class="w-full p-1 border rounded"></div>
+                        <div><label class="font-bold text-slate-500 block">客人/部門</label><input type="text" id="edit-customer-dept" value="${item.customer_dept || ''}" class="w-full p-1 border rounded"></div>
                         <div><label class="font-bold text-slate-500 block">品牌</label><input type="text" id="edit-brand" value="${item.brand || ''}" class="w-full p-1 border rounded"></div>
                         <div><label class="font-bold text-slate-500 block">型號</label><input type="text" id="edit-model" value="${item.model || ''}" class="w-full p-1 border rounded"></div>
                         <div><label class="font-bold text-slate-500 block">車牌</label><input type="text" id="edit-plate" value="${item.plate || ''}" class="w-full p-1 border rounded"></div>
@@ -1109,6 +1309,7 @@
 
             if (item.category === 1) {
                 updatePayload.t_plate = document.getElementById('edit-t-plate').value.trim();
+                updatePayload.customer_dept = document.getElementById('edit-customer-dept').value.trim();
                 updatePayload.brand = document.getElementById('edit-brand').value.trim();
                 updatePayload.plate = document.getElementById('edit-plate').value.trim();
                 updatePayload.vin = document.getElementById('edit-vin').value.trim();
