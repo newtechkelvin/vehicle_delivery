@@ -16,6 +16,8 @@
         .car-zone { transition: all 0.18s ease; cursor: pointer; }
         .car-zone:hover { fill: rgba(59, 130, 246, 0.3); }
         .car-zone.active-damage { fill: rgba(239, 68, 68, 0.65); stroke: #b91c1c; stroke-width: 2.5px; }
+        .paste-zone { transition: all 0.2s ease; border: 2px dashed #cbd5e1; }
+        .paste-zone:hover, .paste-zone.dragover { border-color: #3b82f6; background-color: #eff6ff; }
         @media print {
             body * { visibility: hidden; }
             .print-section, .print-section * { visibility: visible; }
@@ -203,12 +205,25 @@
                             </div>
                         </div>
 
-                        <!-- 拍照存證 -->
+                        <!-- 拍照存證 (新增貼上/拖曳區域) -->
                         <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
                             <h3 class="text-sm font-bold text-slate-800 border-b border-slate-200 pb-2 flex items-center gap-2">
                                 <i data-lucide="camera" class="w-4 h-4 text-indigo-600"></i> 第四部分：拍照存證
                             </h3>
-                            <input type="file" id="cat1-photos" multiple accept="image/*" class="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1">選擇檔案上傳：</label>
+                                <input type="file" id="cat1-photos" multiple accept="image/*" onchange="handleFileSelect('cat1')" class="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                            </div>
+                            
+                            <!-- 剪貼簿貼上/拖曳區域 -->
+                            <div id="cat1-paste-zone" tabindex="0" onclick="focusPasteZone('cat1')" class="paste-zone bg-white rounded-xl p-4 text-center cursor-pointer outline-none focus:ring-2 focus:ring-blue-500">
+                                <i data-lucide="clipboard" class="w-6 h-6 text-slate-400 mx-auto mb-1"></i>
+                                <p class="text-xs text-slate-600 font-semibold">點擊此處並按下 <kbd class="px-1.5 py-0.5 bg-slate-100 border border-slate-300 rounded font-mono text-[10px]">Ctrl + V</kbd> 直接貼上相片</p>
+                                <p class="text-[10px] text-slate-400 mt-0.5">或直接將圖片拖曳至此區域</p>
+                            </div>
+
+                            <!-- 圖片預覽清單 -->
+                            <div id="cat1-photo-previews" class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2"></div>
                         </div>
                     </div>
 
@@ -255,12 +270,25 @@
                             <div id="cat2-damage-cards" class="space-y-3"></div>
                         </div>
 
-                        <!-- 拍照存證 -->
+                        <!-- 拍照存證 (新增貼上/拖曳區域) -->
                         <div class="bg-red-50/50 p-4 rounded-xl border border-red-200 space-y-3">
                             <h3 class="text-sm font-bold text-red-900 border-b border-red-200 pb-2 flex items-center gap-2">
                                 <i data-lucide="camera" class="w-4 h-4 text-red-600"></i> 第三部分：現場拍照存證
                             </h3>
-                            <input type="file" id="cat2-photos" multiple accept="image/*" class="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-red-100 file:text-red-700 hover:file:bg-red-200">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1">選擇檔案上傳：</label>
+                                <input type="file" id="cat2-photos" multiple accept="image/*" onchange="handleFileSelect('cat2')" class="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-red-100 file:text-red-700 hover:file:bg-red-200">
+                            </div>
+
+                            <!-- 剪貼簿貼上/拖曳區域 -->
+                            <div id="cat2-paste-zone" tabindex="0" onclick="focusPasteZone('cat2')" class="paste-zone bg-white rounded-xl p-4 text-center cursor-pointer outline-none focus:ring-2 focus:ring-red-400">
+                                <i data-lucide="clipboard" class="w-6 h-6 text-slate-400 mx-auto mb-1"></i>
+                                <p class="text-xs text-slate-600 font-semibold">點擊此處並按下 <kbd class="px-1.5 py-0.5 bg-slate-100 border border-slate-300 rounded font-mono text-[10px]">Ctrl + V</kbd> 直接貼上相片</p>
+                                <p class="text-[10px] text-slate-400 mt-0.5">或直接將圖片拖曳至此區域</p>
+                            </div>
+
+                            <!-- 圖片預覽清單 -->
+                            <div id="cat2-photo-previews" class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2"></div>
                         </div>
 
                         <!-- 事故說明 -->
@@ -454,10 +482,99 @@
         let activeAdminReportId = null;
         let currentFilter = 'cat1';
 
+        // 獨立圖片記憶體容器 (處理貼上與手動選擇)
+        const photoStores = {
+            cat1: [],
+            cat2: []
+        };
+
         document.addEventListener('DOMContentLoaded', () => {
             lucide.createIcons();
             fetchReportsFromSupabase();
+            setupPasteAndDragListeners('cat1');
+            setupPasteAndDragListeners('cat2');
         });
+
+        // 設定全域與區域的貼上/拖曳事件監聽
+        function setupPasteAndDragListeners(catPrefix) {
+            const zone = document.getElementById(`${catPrefix}-paste-zone`);
+
+            // 拖曳事件
+            zone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                zone.classList.add('dragover');
+            });
+            zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+            zone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                zone.classList.remove('dragover');
+                if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                    addFilesToStore(catPrefix, Array.from(e.dataTransfer.files));
+                }
+            });
+
+            // 貼上事件
+            zone.addEventListener('paste', (e) => {
+                e.preventDefault();
+                const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+                const pastedFiles = [];
+                for (let i = 0; i < items.length; i++) {
+                    if (items[i].type.indexOf('image') !== -1) {
+                        const blob = items[i].getAsFile();
+                        if (blob) {
+                            // 為剪貼簿圖片命名
+                            const file = new File([blob], `pasted_image_${Date.now()}_${i}.png`, { type: blob.type });
+                            pastedFiles.push(file);
+                        }
+                    }
+                }
+                if (pastedFiles.length > 0) {
+                    addFilesToStore(catPrefix, pastedFiles);
+                } else {
+                    alert('剪貼簿中沒有偵測到圖片！請先複製圖片後再嘗試貼上。');
+                }
+            });
+        }
+
+        function focusPasteZone(catPrefix) {
+            document.getElementById(`${catPrefix}-paste-zone`).focus();
+        }
+
+        function handleFileSelect(catPrefix) {
+            const fileInput = document.getElementById(`${catPrefix}-photos`);
+            if (fileInput.files && fileInput.files.length > 0) {
+                addFilesToStore(catPrefix, Array.from(fileInput.files));
+            }
+        }
+
+        function addFilesToStore(catPrefix, files) {
+            // 過濾非圖片
+            const imageFiles = files.filter(f => f.type.startsWith('image/'));
+            photoStores[catPrefix].push(...imageFiles);
+            renderPhotoPreviews(catPrefix);
+        }
+
+        function removePhoto(catPrefix, index) {
+            photoStores[catPrefix].splice(index, 1);
+            renderPhotoPreviews(catPrefix);
+        }
+
+        function renderPhotoPreviews(catPrefix) {
+            const container = document.getElementById(`${catPrefix}-photo-previews`);
+            container.innerHTML = photoStores[catPrefix].map((file, idx) => {
+                const objectUrl = URL.createObjectURL(file);
+                return `
+                    <div class="relative group rounded-lg overflow-hidden border border-slate-200 bg-slate-100 aspect-video">
+                        <img src="${objectUrl}" class="w-full h-full object-cover">
+                        <button type="button" onclick="removePhoto('${catPrefix}', ${idx})" class="absolute top-1 right-1 bg-red-600 text-white rounded-full p-1 opacity-90 hover:opacity-100 shadow transition">
+                            <i data-lucide="x" class="w-3 h-3"></i>
+                        </button>
+                        <span class="absolute bottom-0 left-0 right-0 bg-slate-900/60 text-white text-[9px] px-1 py-0.5 truncate">${file.name}</span>
+                    </div>
+                `;
+            }).join('');
+            lucide.createIcons();
+        }
 
         function setCategory(cat) {
             currentCategory = cat;
@@ -642,12 +759,12 @@
                 payload.policed = document.getElementById('cat2-policed').value;
             }
 
-            // 使用 Form 隱藏表單提交相片到 Google Drive
-            const photoInput = currentCategory === 1 ? document.getElementById('cat1-photos') : document.getElementById('cat2-photos');
-            if (photoInput.files.length > 0) {
+            // 使用 photoStores 內的相片檔案（包含選擇與貼上）
+            const photosToUpload = currentCategory === 1 ? photoStores.cat1 : photoStores.cat2;
+            if (photosToUpload.length > 0) {
                 submitBtn.textContent = '相片上傳至 Drive 中...';
                 const folderName = `${payload.t_plate || payload.plate_vin || '車輛'}_${payload.driver}_${nowIso.slice(0,10)}`;
-                await uploadPhotosViaForm(photoInput.files, folderName);
+                await uploadPhotosViaForm(photosToUpload, folderName);
             }
 
             if (supabaseClient) {
@@ -658,52 +775,54 @@
 
             submitBtn.disabled = false;
             submitBtn.textContent = '確認並提交雲端';
+            
+            // 清空表單與相片陣列
             document.getElementById('report-form').reset();
+            photoStores.cat1 = [];
+            photoStores.cat2 = [];
+            renderPhotoPreviews('cat1');
+            renderPhotoPreviews('cat2');
+            
             fetchReportsFromSupabase();
         }
-// 批次打包照片並透過隱藏 Form 一次過提交
-async function uploadPhotosViaForm(files, folderName) {
-    const form = document.getElementById('gas-upload-form');
-    form.action = GOOGLE_DRIVE_GAS_URL;
 
-    // 將所有相片轉為 Base64 並存入陣列
-    const filesArray = [];
-    for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        try {
-            const base64Data = await readFileAsBase64(file);
-            filesArray.push({
-                filename: file.name,
-                mimeType: file.type,
-                file: base64Data
-            });
-        } catch (err) {
-            console.error("相片讀取失敗:", file.name, err);
+        // 批次打包照片並透過隱藏 Form 一次過提交
+        async function uploadPhotosViaForm(files, folderName) {
+            const form = document.getElementById('gas-upload-form');
+            form.action = GOOGLE_DRIVE_GAS_URL;
+
+            const filesArray = [];
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                try {
+                    const base64Data = await readFileAsBase64(file);
+                    filesArray.push({
+                        filename: file.name,
+                        mimeType: file.type,
+                        file: base64Data
+                    });
+                } catch (err) {
+                    console.error("相片讀取失敗:", file.name, err);
+                }
+            }
+
+            if (filesArray.length === 0) return;
+
+            document.getElementById('gas-folderName').value = folderName;
+            
+            let filesInput = document.getElementById('gas-filesData');
+            if (!filesInput) {
+                filesInput = document.createElement('input');
+                filesInput.type = 'hidden';
+                filesInput.name = 'filesData';
+                filesInput.id = 'gas-filesData';
+                form.appendChild(filesInput);
+            }
+            filesInput.value = JSON.stringify(filesArray);
+
+            form.submit();
+            await new Promise(r => setTimeout(r, 1500));
         }
-    }
-
-    if (filesArray.length === 0) return;
-
-    // 設定 Form 欄位 (將整個相片陣列轉為 JSON 字串一次傳送)
-    document.getElementById('gas-folderName').value = folderName;
-    
-    // 如果 Form 原本沒有 gas-filesData 隱藏欄位，動態建立一個
-    let filesInput = document.getElementById('gas-filesData');
-    if (!filesInput) {
-        filesInput = document.createElement('input');
-        filesInput.type = 'hidden';
-        filesInput.name = 'filesData';
-        filesInput.id = 'gas-filesData';
-        form.appendChild(filesInput);
-    }
-    filesInput.value = JSON.stringify(filesArray);
-
-    // 提交 Form (僅觸發 1 次提交)
-    form.submit();
-    
-    // 等待 1.5 秒讓瀏覽器將完整的 Payload 傳出
-    await new Promise(r => setTimeout(r, 1500));
-}
 
         function readFileAsBase64(file) {
             return new Promise((resolve, reject) => {
@@ -951,7 +1070,6 @@ async function uploadPhotosViaForm(files, folderName) {
             fetchReportsFromSupabase();
         }
 
-        // 徹底解決刪除功能：兼容 id 與 report_id 雙重對應
         async function deleteCurrentReport() {
             if (!activeAdminReportId) return;
             if (!confirm(`確定要刪除申報單據：${activeAdminReportId} 嗎？此操作無法撤銷！`)) return;
