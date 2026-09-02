@@ -101,7 +101,7 @@
                                     <input type="text" id="cat1-driver" placeholder="請輸入全名" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
                                 </div>
 
-                                <!-- 新增：客人 / 部門 -->
+                                <!-- 客人 / 部門 -->
                                 <div>
                                     <label class="block text-xs font-semibold text-slate-600 mb-1">客人 / 部門</label>
                                     <input type="text" id="cat1-customer-dept" placeholder="例如：工程部 / 客戶工程公司" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
@@ -402,7 +402,7 @@
                     <div id="admin-report-list" class="space-y-3"></div>
                 </div>
 
-                <!-- 新增：車輛搜查頁面板 -->
+                <!-- 車輛搜查頁面板 -->
                 <div id="admin-panel-search" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-6 hidden">
                     <div class="border-b border-slate-100 pb-4">
                         <h3 class="text-base font-bold text-slate-900 flex items-center gap-2"><i data-lucide="search" class="w-5 h-5 text-blue-600"></i> 車輛歷史運送紀錄搜查</h3>
@@ -467,7 +467,7 @@
         2026 - New Tech Motor Engineering Limited
     </footer>
 
-    <!-- 新增：提交成功彈窗 (摘要複製) -->
+    <!-- 提交成功彈窗 (摘要複製) -->
     <div id="success-copy-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 space-y-4 text-center">
             <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto">
@@ -475,7 +475,6 @@
             </div>
             <h3 class="text-lg font-bold text-slate-900">申報成功提交！</h3>
             <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-left text-xs font-mono space-y-1 text-slate-700" id="copy-summary-text">
-                <!-- 摘要訊息匯入處 -->
             </div>
             <div class="flex items-center gap-2 pt-2">
                 <button onclick="copySummaryText()" class="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition flex items-center justify-center gap-1.5">
@@ -796,7 +795,6 @@
                 if (!driver) { alert('請輸入司機/員工姓名！'); return; }
                 if (!brandVal) { alert('請選擇或輸入車輛品牌！'); return; }
                 
-                // 修改 1: 型號或車牌二選一必填驗證
                 if (!modelVal && !plateVal) {
                     alert('「型號」與「車牌」請至少填寫其中一項！');
                     return;
@@ -839,7 +837,7 @@
 
                 payload.t_plate = document.getElementById('cat1-t-plate').value;
                 payload.driver = document.getElementById('cat1-driver').value.trim();
-                payload.customer_dept = document.getElementById('cat1-customer-dept').value.trim(); // 新增：客人/部門
+                payload.customer_dept = document.getElementById('cat1-customer-dept').value.trim();
                 payload.brand = brandVal;
                 payload.model = modelVal;
                 payload.plate = plateVal;
@@ -888,7 +886,6 @@
             submitBtn.disabled = false;
             submitBtn.textContent = '確認並提交雲端';
 
-            // 修改 3: 構建最新摘要訊息 (車牌 / VIN 智慧判定組合)
             let pvParts = [];
             if (payload.plate) pvParts.push(`車牌: ${payload.plate}`);
             if (payload.vin) pvParts.push(`VIN: ${payload.vin}`);
@@ -989,15 +986,23 @@
             }
         }
 
+        // 修改：修復頁籤切換與頂部 Navbar 按鈕高亮問題
         function switchTab(tab) {
             const d = document.getElementById('view-driver');
             const a = document.getElementById('view-admin');
+            const btnD = document.getElementById('nav-driver-btn');
+            const btnA = document.getElementById('nav-admin-btn');
+
             if (tab === 'driver') {
                 d.classList.remove('hidden');
                 a.classList.add('hidden');
+                btnD.className = "px-3 py-1.5 rounded-lg text-sm font-medium bg-blue-600 text-white transition";
+                btnA.className = "px-3 py-1.5 rounded-lg text-sm font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 transition";
             } else {
                 d.classList.add('hidden');
                 a.classList.remove('hidden');
+                btnA.className = "px-3 py-1.5 rounded-lg text-sm font-medium bg-blue-600 text-white transition";
+                btnD.className = "px-3 py-1.5 rounded-lg text-sm font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 transition";
             }
         }
 
@@ -1037,7 +1042,6 @@
             }
         }
 
-        // 修改 4: 車輛搜查頁比對與渲染
         function searchVehicleRecords() {
             const query = document.getElementById('vehicle-search-input').value.trim().toLowerCase();
             const tbody = document.getElementById('vehicle-search-tbody');
@@ -1153,7 +1157,6 @@
             `).join('');
         }
 
-        // 修改 5: Summary CSV 數據匯出功能
         function exportTSummaryCSV() {
             const selectedPlate = document.getElementById('summary-t-select').value;
             if (!selectedPlate) {
@@ -1170,7 +1173,7 @@
                 return;
             }
 
-            let csvContent = "\uFEFF"; // UTF-8 BOM
+            let csvContent = "\uFEFF";
             csvContent += "日期時間,司機/員工姓名,客人/部門,品牌,型號,車牌/VIN,出發地,目的地\n";
 
             records.forEach(r => {
