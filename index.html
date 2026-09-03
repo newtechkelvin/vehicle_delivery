@@ -96,15 +96,50 @@
                                         <option value="T13013">T13013</option>
                                     </select>
                                 </div>
+
+                                <!-- 司機/員工姓名 (下拉選單 + 手動輸入) -->
                                 <div>
                                     <label class="block text-xs font-semibold text-slate-600 mb-1">司機/員工姓名 *</label>
-                                    <input type="text" id="cat1-driver" placeholder="請輸入全名" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                                    <select id="cat1-driver-select" onchange="toggleCustomOption('cat1-driver-select', 'cat1-driver-custom')" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                                        <option value="">-- 請選擇司機/員工 --</option>
+                                        <option value="林國枝">林國枝</option>
+                                        <option value="鄭偉倫">鄭偉倫</option>
+                                        <option value="黃家鑑">黃家鑑</option>
+                                        <option value="林耀銓">林耀銓</option>
+                                        <option value="other">其他 (手動輸入)</option>
+                                    </select>
+                                    <input type="text" id="cat1-driver-custom" placeholder="請輸入全名" class="w-full mt-2 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none hidden">
                                 </div>
 
-                                <!-- 客人 / 部門 -->
+                                <!-- 客人 / 部門 (下拉選單 + 手動輸入) -->
                                 <div>
                                     <label class="block text-xs font-semibold text-slate-600 mb-1">客人 / 部門</label>
-                                    <input type="text" id="cat1-customer-dept" placeholder="例如：工程部 / 客戶工程公司" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                                    <select id="cat1-dept-select" onchange="toggleCustomOption('cat1-dept-select', 'cat1-dept-custom')" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                                        <option value="">-- 請選擇客人 / 部門 --</option>
+                                        <option value="警務處">警務處</option>
+                                        <option value="消防處">消防處</option>
+                                        <option value="懲教署">懲教署</option>
+                                        <option value="機電工程署">機電工程署</option>
+                                        <option value="衛生處">衛生處</option>
+                                        <option value="博愛醫院">博愛醫院</option>
+                                        <option value="東華三院">東華三院</option>
+                                        <option value="保良局">保良局</option>
+                                        <option value="耀能SAHK">耀能SAHK</option>
+                                        <option value="匡智">匡智</option>
+                                        <option value="靈實HOHCS">靈實HOHCS</option>
+                                        <option value="明愛">明愛</option>
+                                        <option value="非緊">非緊</option>
+                                        <option value="復康會">復康會</option>
+                                        <option value="易達">易達</option>
+                                        <option value="鄰舍輔導會NAAC">鄰舍輔導會NAAC</option>
+                                        <option value="基督教CFSC">基督教CFSC</option>
+                                        <option value="紅十字會">紅十字會</option>
+                                        <option value="駕駛學院">駕駛學院</option>
+                                        <option value="中電CLP">中電CLP</option>
+                                        <option value="港燈HKE">港燈HKE</option>
+                                        <option value="other">其他 (手動輸入)</option>
+                                    </select>
+                                    <input type="text" id="cat1-dept-custom" placeholder="例如：工程部 / 客戶工程公司" class="w-full mt-2 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none hidden">
                                 </div>
                                 
                                 <!-- 品牌 -->
@@ -142,13 +177,143 @@
                                     <label class="block text-xs font-semibold text-slate-600 mb-1">底盤號碼 (VIN)</label>
                                     <input type="text" id="cat1-vin" placeholder="請輸入 VIN 號碼" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono focus:ring-2 focus:ring-blue-500 outline-none">
                                 </div>
+
+                                <!-- 出發地 (下拉選單 + 手動輸入) -->
                                 <div>
                                     <label class="block text-xs font-semibold text-slate-600 mb-1">出發地 *</label>
-                                    <input type="text" id="cat1-origin" placeholder="例如：工場停車場" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                                    <select id="cat1-origin-select" onchange="toggleCustomOption('cat1-origin-select', 'cat1-origin-custom')" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                                        <option value="">-- 請選擇出發地 --</option>
+                                        <option value="工場(八鄉)">工場(八鄉)</option>
+                                        <option value="EMSD - 九龍灣 G/F">EMSD - 九龍灣 G/F</option>
+                                        <option value="EMSD - 九龍灣 1/F">EMSD - 九龍灣 1/F</option>
+                                        <option value="EMSD - 九龍灣 2/F">EMSD - 九龍灣 2/F</option>
+                                        <option value="EMSD - 小蠔灣">EMSD - 小蠔灣</option>
+                                        <option value="EMSD - 屯門">EMSD - 屯門</option>
+                                        <option value="EMSD - 芬園">EMSD - 芬園</option>
+                                        <option value="EMSD - 柴灣">EMSD - 柴灣</option>
+                                        <option value="HKPF - PTU">HKPF - PTU</option>
+                                        <option value="HKPF - 灣仔警總">HKPF - 灣仔警總</option>
+                                        <option value="HKPF - 觀塘警署">HKPF - 觀塘警署</option>
+                                        <option value="HKPF - 石硤尾警總">HKPF - 石硤尾警總</option>
+                                        <option value="將軍澳消防學院">將軍澳消防學院</option>
+                                        <option value="消防維修工程部 - 九龍灣">消防維修工程部 - 九龍灣</option>
+                                        <option value="消防維修工程部 - 北角">消防維修工程部 - 北角</option>
+                                        <option value="消防維修工程部 - 葵涌">消防維修工程部 - 葵涌</option>
+                                        <option value="仁孚 - 思信車場">仁孚 - 思信車場</option>
+                                        <option value="仁孚維修部 - 元朗">仁孚維修部 - 元朗</option>
+                                        <option value="仁孚維修部 - 流浮山">仁孚維修部 - 流浮山</option>
+                                        <option value="仁孚維修部 - 粉嶺">仁孚維修部 - 粉嶺</option>
+                                        <option value="三菱 - 石崗車場">三菱 - 石崗車場</option>
+                                        <option value="三菱 - 新田大昌">三菱 - 新田大昌</option>
+                                        <option value="皇冠 - B1修理部">皇冠 - B1修理部</option>
+                                        <option value="皇冠 - PDI">皇冠 - PDI</option>
+                                        <option value="皇冠 - 大場">皇冠 - 大場</option>
+                                        <option value="皇冠 - 元朗維修部 (豐田)">皇冠 - 元朗維修部 (豐田)</option>
+                                        <option value="復康會 - 大業街車場">復康會 - 大業街車場</option>
+                                        <option value="復康會 - 屯門石排">復康會 - 屯門石排</option>
+                                        <option value="復康會 - 藍田">復康會 - 藍田</option>
+                                        <option value="醫管局 - 九龍醫院">醫管局 - 九龍醫院</option>
+                                        <option value="醫管局 - 沙田醫院">醫管局 - 沙田醫院</option>
+                                        <option value="醫管局 - 東區醫院">醫管局 - 東區醫院</option>
+                                        <option value="醫管局 - 博愛醫院">醫管局 - 博愛醫院</option>
+                                        <option value="醫管局 - 葵涌醫院">醫管局 - 葵涌醫院</option>
+                                        <option value="醫管局 - 瑪嘉烈醫院">醫管局 - 瑪嘉烈醫院</option>
+                                        <option value="醫管局 - 瑪麗醫院">醫管局 - 瑪麗醫院</option>
+                                        <option value="醫管局 - 廣華醫院">醫管局 - 廣華醫院</option>
+                                        <option value="醫管局 - 聯合醫院">醫管局 - 聯合醫院</option>
+                                        <option value="醫管局 - 靈實醫院">醫管局 - 靈實醫院</option>
+                                        <option value="駕駛學院 - 元朗">駕駛學院 - 元朗</option>
+                                        <option value="駕駛學院 - 沙田">駕駛學院 - 沙田</option>
+                                        <option value="王大山 (痴貼紙)">王大山 (痴貼紙)</option>
+                                        <option value="沛哥">沛哥</option>
+                                        <option value="冷氣超 / 豪仔">冷氣超 / 豪仔</option>
+                                        <option value="亞洲車身廠">亞洲車身廠</option>
+                                        <option value="福士廠 - 昂船洲">福士廠 - 昂船洲</option>
+                                        <option value="小欖 - 峻庭">小欖 - 峻庭</option>
+                                        <option value="小欖 - 耀能">小欖 - 耀能</option>
+                                        <option value="青衣驗車中心">青衣驗車中心</option>
+                                        <option value="青衣中電">青衣中電</option>
+                                        <option value="GENTECH">GENTECH</option>
+                                        <option value="MAN廠 (新田)">MAN廠 (新田)</option>
+                                        <option value="九號碼頭">九號碼頭</option>
+                                        <option value="科程">科程</option>
+                                        <option value="舊科程">舊科程</option>
+                                        <option value="偉順防銹">偉順防銹</option>
+                                        <option value="雄哥運輸">雄哥運輸</option>
+                                        <option value="香港紅十字會甘迺迪中心">香港紅十字會甘迺迪中心</option>
+                                        <option value="大埔匡智">大埔匡智</option>
+                                        <option value="other">其他 (手動輸入)</option>
+                                    </select>
+                                    <input type="text" id="cat1-origin-custom" placeholder="請輸入出發地" class="w-full mt-2 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none hidden">
                                 </div>
+
+                                <!-- 目的地 (下拉選單 + 手動輸入) -->
                                 <div>
                                     <label class="block text-xs font-semibold text-slate-600 mb-1">目的地 *</label>
-                                    <input type="text" id="cat1-destination" placeholder="例如：客戶地址" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                                    <select id="cat1-destination-select" onchange="toggleCustomOption('cat1-destination-select', 'cat1-destination-custom')" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                                        <option value="">-- 請選擇目的地 --</option>
+                                        <option value="工場(八鄉)">工場(八鄉)</option>
+                                        <option value="EMSD - 九龍灣 G/F">EMSD - 九龍灣 G/F</option>
+                                        <option value="EMSD - 九龍灣 1/F">EMSD - 九龍灣 1/F</option>
+                                        <option value="EMSD - 九龍灣 2/F">EMSD - 九龍灣 2/F</option>
+                                        <option value="EMSD - 小蠔灣">EMSD - 小蠔灣</option>
+                                        <option value="EMSD - 屯門">EMSD - 屯門</option>
+                                        <option value="EMSD - 芬園">EMSD - 芬園</option>
+                                        <option value="EMSD - 柴灣">EMSD - 柴灣</option>
+                                        <option value="HKPF - PTU">HKPF - PTU</option>
+                                        <option value="HKPF - 灣仔警總">HKPF - 灣仔警總</option>
+                                        <option value="HKPF - 觀塘警署">HKPF - 觀塘警署</option>
+                                        <option value="HKPF - 石硤尾警總">HKPF - 石硤尾警總</option>
+                                        <option value="將軍澳消防學院">將軍澳消防學院</option>
+                                        <option value="消防維修工程部 - 九龍灣">消防維修工程部 - 九龍灣</option>
+                                        <option value="消防維修工程部 - 北角">消防維修工程部 - 北角</option>
+                                        <option value="消防維修工程部 - 葵涌">消防維修工程部 - 葵涌</option>
+                                        <option value="仁孚 - 思信車場">仁孚 - 思信車場</option>
+                                        <option value="仁孚維修部 - 元朗">仁孚維修部 - 元朗</option>
+                                        <option value="仁孚維修部 - 流浮山">仁孚維修部 - 流浮山</option>
+                                        <option value="仁孚維修部 - 粉嶺">仁孚維修部 - 粉嶺</option>
+                                        <option value="三菱 - 石崗車場">三菱 - 石崗車場</option>
+                                        <option value="三菱 - 新田大昌">三菱 - 新田大昌</option>
+                                        <option value="皇冠 - B1修理部">皇冠 - B1修理部</option>
+                                        <option value="皇冠 - PDI">皇冠 - PDI</option>
+                                        <option value="皇冠 - 大場">皇冠 - 大場</option>
+                                        <option value="皇冠 - 元朗維修部 (豐田)">皇冠 - 元朗維修部 (豐田)</option>
+                                        <option value="復康會 - 大業街車場">復康會 - 大業街車場</option>
+                                        <option value="復康會 - 屯門石排">復康會 - 屯門石排</option>
+                                        <option value="復康會 - 藍田">復康會 - 藍田</option>
+                                        <option value="醫管局 - 九龍醫院">醫管局 - 九龍醫院</option>
+                                        <option value="醫管局 - 沙田醫院">醫管局 - 沙田醫院</option>
+                                        <option value="醫管局 - 東區醫院">醫管局 - 東區醫院</option>
+                                        <option value="醫管局 - 博愛醫院">醫管局 - 博愛醫院</option>
+                                        <option value="醫管局 - 葵涌醫院">醫管局 - 葵涌醫院</option>
+                                        <option value="醫管局 - 瑪嘉烈醫院">醫管局 - 瑪嘉烈醫院</option>
+                                        <option value="醫管局 - 瑪麗醫院">醫管局 - 瑪麗醫院</option>
+                                        <option value="醫管局 - 廣華醫院">醫管局 - 廣華醫院</option>
+                                        <option value="醫管局 - 聯合醫院">醫管局 - 聯合醫院</option>
+                                        <option value="醫管局 - 靈實醫院">醫管局 - 靈實醫院</option>
+                                        <option value="駕駛學院 - 元朗">駕駛學院 - 元朗</option>
+                                        <option value="駕駛學院 - 沙田">駕駛學院 - 沙田</option>
+                                        <option value="王大山 (痴貼紙)">王大山 (痴貼紙)</option>
+                                        <option value="沛哥">沛哥</option>
+                                        <option value="冷氣超 / 豪仔">冷氣超 / 豪仔</option>
+                                        <option value="亞洲車身廠">亞洲車身廠</option>
+                                        <option value="福士廠 - 昂船洲">福士廠 - 昂船洲</option>
+                                        <option value="小欖 - 峻庭">小欖 - 峻庭</option>
+                                        <option value="小欖 - 耀能">小欖 - 耀能</option>
+                                        <option value="青衣驗車中心">青衣驗車中心</option>
+                                        <option value="青衣中電">青衣中電</option>
+                                        <option value="GENTECH">GENTECH</option>
+                                        <option value="MAN廠 (新田)">MAN廠 (新田)</option>
+                                        <option value="九號碼頭">九號碼頭</option>
+                                        <option value="科程">科程</option>
+                                        <option value="舊科程">舊科程</option>
+                                        <option value="偉順防銹">偉順防銹</option>
+                                        <option value="雄哥運輸">雄哥運輸</option>
+                                        <option value="香港紅十字會甘迺迪中心">香港紅十字會甘迺迪中心</option>
+                                        <option value="大埔匡智">大埔匡智</option>
+                                        <option value="other">其他 (手動輸入)</option>
+                                    </select>
+                                    <input type="text" id="cat1-destination-custom" placeholder="請輸入目的地" class="w-full mt-2 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none hidden">
                                 </div>
                             </div>
                         </div>
@@ -591,15 +756,31 @@
             addCustomItem('cat1', true);
         });
 
-        function toggleBrandCustom(catPrefix) {
-            const select = document.getElementById(`${catPrefix}-brand-select`);
-            const customInput = document.getElementById(`${catPrefix}-brand-custom`);
+        // 通用：控制「其他 (手動輸入)」輸入框的開關
+        function toggleCustomOption(selectId, customInputId) {
+            const select = document.getElementById(selectId);
+            const customInput = document.getElementById(customInputId);
             if (select.value === 'other') {
                 customInput.classList.remove('hidden');
             } else {
                 customInput.classList.add('hidden');
                 customInput.value = '';
             }
+        }
+
+        // 通用：獲取下拉選單或手動輸入框的真實數值
+        function getSelectOrCustomValue(selectId, customInputId) {
+            const select = document.getElementById(selectId);
+            const customInput = document.getElementById(customInputId);
+            if (!select) return '';
+            if (select.value === 'other') {
+                return customInput ? customInput.value.trim() : '';
+            }
+            return select.value;
+        }
+
+        function toggleBrandCustom(catPrefix) {
+            toggleCustomOption(`${catPrefix}-brand-select`, `${catPrefix}-brand-custom`);
         }
 
         function setupPasteAndDragListeners(catPrefix) {
@@ -774,25 +955,28 @@
         async function submitReport(e) {
             e.preventDefault();
 
+            let driverVal = '';
+            let deptVal = '';
             let brandVal = '';
             let modelVal = '';
             let plateVal = '';
+            let originVal = '';
+            let destinationVal = '';
 
             if (currentCategory === 1) {
                 const tPlate = document.getElementById('cat1-t-plate').value;
-                const driver = document.getElementById('cat1-driver').value.trim();
-                const bSelect = document.getElementById('cat1-brand-select').value;
-                const bCustom = document.getElementById('cat1-brand-custom').value.trim();
-                brandVal = bSelect === 'other' ? bCustom : bSelect;
+                driverVal = getSelectOrCustomValue('cat1-driver-select', 'cat1-driver-custom');
+                deptVal = getSelectOrCustomValue('cat1-dept-select', 'cat1-dept-custom');
+                brandVal = getSelectOrCustomValue('cat1-brand-select', 'cat1-brand-custom');
 
                 modelVal = document.getElementById('cat1-model').value.trim();
                 plateVal = document.getElementById('cat1-plate').value.trim();
 
-                const origin = document.getElementById('cat1-origin').value.trim();
-                const destination = document.getElementById('cat1-destination').value.trim();
+                originVal = getSelectOrCustomValue('cat1-origin-select', 'cat1-origin-custom');
+                destinationVal = getSelectOrCustomValue('cat1-destination-select', 'cat1-destination-custom');
                 
                 if (!tPlate) { alert('請選擇 T 牌號碼！'); return; }
-                if (!driver) { alert('請輸入司機/員工姓名！'); return; }
+                if (!driverVal) { alert('請選擇或輸入司機/員工姓名！'); return; }
                 if (!brandVal) { alert('請選擇或輸入車輛品牌！'); return; }
                 
                 if (!modelVal && !plateVal) {
@@ -800,8 +984,8 @@
                     return;
                 }
 
-                if (!origin) { alert('請輸入出發地！'); return; }
-                if (!destination) { alert('請輸入目的地！'); return; }
+                if (!originVal) { alert('請選擇或輸入出發地！'); return; }
+                if (!destinationVal) { alert('請選擇或輸入目的地！'); return; }
             } else {
                 const driver = document.getElementById('cat2-driver').value.trim();
                 const model = document.getElementById('cat2-model').value.trim();
@@ -836,14 +1020,14 @@
                 });
 
                 payload.t_plate = document.getElementById('cat1-t-plate').value;
-                payload.driver = document.getElementById('cat1-driver').value.trim();
-                payload.customer_dept = document.getElementById('cat1-customer-dept').value.trim();
+                payload.driver = driverVal;
+                payload.customer_dept = deptVal;
                 payload.brand = brandVal;
                 payload.model = modelVal;
                 payload.plate = plateVal;
                 payload.vin = document.getElementById('cat1-vin').value.trim();
-                payload.origin = document.getElementById('cat1-origin').value.trim();
-                payload.destination = document.getElementById('cat1-destination').value.trim();
+                payload.origin = originVal;
+                payload.destination = destinationVal;
                 payload.items_checklist = itemsList;
                 payload.condition = document.querySelector('input[name="cat1-condition"]:checked').value;
                 payload.damage_items = payload.condition === 'abnormal' ? cat1DamageRecords : [];
@@ -904,6 +1088,13 @@
             showSuccessCopyModal(latestSummaryRawText);
             
             document.getElementById('report-form').reset();
+            
+            // 手動重置自訂輸入框的顯示隱藏狀態
+            ['cat1-driver-custom', 'cat1-dept-custom', 'cat1-brand-custom', 'cat1-origin-custom', 'cat1-destination-custom'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.classList.add('hidden');
+            });
+
             photoStores.cat1 = [];
             photoStores.cat2 = [];
             renderPhotoPreviews('cat1');
@@ -986,7 +1177,6 @@
             }
         }
 
-        // 修改：修復頁籤切換與頂部 Navbar 按鈕高亮問題
         function switchTab(tab) {
             const d = document.getElementById('view-driver');
             const a = document.getElementById('view-admin');
